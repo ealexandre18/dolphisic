@@ -8,9 +8,358 @@
     <title>DolphiSIC - SDIS 04</title>
     <script type="module" crossorigin src="/assets/index-DyRupmtp.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-CzgsKiV0.css">
+    <link rel="stylesheet" href="/assets/magic-effects.css">
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      (function() {
+        const LOG_ENDPOINT = '/api/logs/ui';
+        
+        function sendLog(event, details) {
+          const payload = {
+            event: event,
+            path: window.location.pathname + window.location.search + window.location.hash,
+            details: details,
+            timestamp: new Date().toISOString()
+          };
+          fetch(LOG_ENDPOINT, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload),
+            keepalive: true
+          }).catch(err => {});
+        }
+
+        let lastPath = window.location.pathname + window.location.search + window.location.hash;
+        
+        function checkNavigation() {
+          const currentPath = window.location.pathname + window.location.search + window.location.hash;
+          if (currentPath !== lastPath) {
+            lastPath = currentPath;
+            sendLog('NAVIGATION', {});
+          }
+        }
+
+        const originalPushState = history.pushState;
+        history.pushState = function() {
+          originalPushState.apply(this, arguments);
+          checkNavigation();
+        };
+
+        const originalReplaceState = history.replaceState;
+        history.replaceState = function() {
+          originalReplaceState.apply(this, arguments);
+          checkNavigation();
+        };
+
+        window.addEventListener('popstate', checkNavigation);
+
+        document.addEventListener('click', function(e) {
+          let target = e.target;
+          let interactiveEl = null;
+          let depth = 0;
+          let curr = target;
+          
+          while (curr && depth < 4) {
+            const tag = curr.tagName ? curr.tagName.toUpperCase() : '';
+            const role = curr.getAttribute ? curr.getAttribute('role') : '';
+            let cursor = '';
+            try {
+              if (window.getComputedStyle && curr instanceof Element) {
+                cursor = window.getComputedStyle(curr).cursor;
+              }
+            } catch (err) {}
+            
+            const hasClickAttr = curr.getAttribute && (curr.getAttribute('onclick') || curr.getAttribute('@click') || curr.getAttribute('v-on:click'));
+            
+            if (
+              tag === 'BUTTON' || 
+              tag === 'A' || 
+              (tag === 'INPUT' && ['submit', 'button', 'checkbox', 'radio', 'image'].includes(curr.type)) ||
+              tag === 'SELECT' || 
+              tag === 'OPTION' ||
+              role === 'button' ||
+              role === 'link' ||
+              role === 'checkbox' ||
+              role === 'switch' ||
+              cursor === 'pointer' ||
+              hasClickAttr ||
+              (curr.className && typeof curr.className === 'string' && (curr.className.includes('btn') || curr.className.includes('button') || curr.className.includes('toggle')))
+            ) {
+              interactiveEl = curr;
+              break;
+            }
+            curr = curr.parentNode;
+            depth++;
+          }
+          
+          if (!interactiveEl) return;
+          
+          let label = '';
+          if (interactiveEl.innerText) {
+            label = interactiveEl.innerText.trim();
+          }
+          
+          if (!label && interactiveEl.getAttribute) {
+            label = interactiveEl.getAttribute('aria-label') || 
+                    interactiveEl.getAttribute('title') || 
+                    interactiveEl.getAttribute('placeholder') ||
+                    interactiveEl.getAttribute('alt');
+          }
+          
+          if (!label && interactiveEl.tagName === 'INPUT') {
+            label = interactiveEl.value || interactiveEl.name || interactiveEl.type;
+          }
+          
+          if (!label && interactiveEl.id) {
+            label = '#' + interactiveEl.id;
+          }
+          
+          if (!label) {
+            label = interactiveEl.tagName;
+          }
+          
+          label = label.substring(0, 60);
+          
+          sendLog('CLICK', {
+            tag: interactiveEl.tagName.toLowerCase(),
+            label: label,
+            id: interactiveEl.id || '',
+            class: typeof interactiveEl.className === 'string' ? interactiveEl.className : '',
+            type: interactiveEl.type || '',
+            role: interactiveEl.getAttribute ? interactiveEl.getAttribute('role') : ''
+          });
+        }, true);
+
+        document.addEventListener('change', function(e) {
+          const target = e.target;
+          if (!target) return;
+          
+          const tag = target.tagName ? target.tagName.toUpperCase() : '';
+          const type = target.type ? target.type.toLowerCase() : '';
+          
+          let label = '';
+          if (target.id) {
+            const labelEl = document.querySelector('label[for="' + target.id + '"]');
+            if (labelEl) label = labelEl.innerText.trim();
+          }
+          if (!label && target.placeholder) label = target.placeholder;
+          if (!label && target.name) label = target.name;
+          
+          let val = target.value;
+          if (type === 'checkbox') {
+            val = target.checked ? 'TRUE' : 'FALSE';
+          } else if (type === 'radio') {
+            val = target.checked ? target.value : '';
+            if (!val) return;
+          }
+          
+          sendLog('CHANGE', {
+            tag: tag.toLowerCase(),
+            name: target.name || target.id || '',
+            label: label || target.name || '',
+            value: val
+          });
+        }, true);
+
+        document.addEventListener('submit', function(e) {
+          const form = e.target;
+          if (!form) return;
+          
+          const fields = {};
+          try {
+            const formData = new FormData(form);
+            for (let [key, val] of formData.entries()) {
+              if (/pass|token|secret|key/i.test(key)) {
+                fields[key] = '********';
+              } else {
+                fields[key] = val;
+              }
+            }
+          } catch (err) {}
+          
+          try {
+            const inputs = form.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+              if (input.id && !fields[input.id] && (!input.name || input.name === '')) {
+                const key = input.id;
+                const val = input.value;
+                if (input.type === 'password' || /pass|token|secret|key/i.test(key)) {
+                  fields[key] = '********';
+                } else {
+                  fields[key] = val;
+                }
+              }
+            });
+          } catch (err) {}
+
+          sendLog('SUBMIT', {
+            id: form.id || '',
+            name: form.name || '',
+            fields: fields
+          });
+        }, true);
+        
+      })();
+    </script>
+
+    <!-- ====================================================
+         MagicUI Effects — Injection dynamique
+         Observe le DOM React et applique les effets CSS
+         ==================================================== -->
+    <script>
+      (function() {
+        'use strict';
+
+        /* ------ Helpers ------ */
+        function addGlowBg() {
+          if (document.querySelector('.magic-bg-glow')) return;
+          const g1 = document.createElement('div');
+          g1.className = 'magic-bg-glow magic-bg-glow-1';
+          const g2 = document.createElement('div');
+          g2.className = 'magic-bg-glow magic-bg-glow-2';
+          document.body.prepend(g2);
+          document.body.prepend(g1);
+        }
+
+        function removeGlowBg() {
+          document.querySelectorAll('.magic-bg-glow').forEach(el => el.remove());
+        }
+
+        /* ------ Mouse tracking pour le glow MagicCard ------ */
+        function trackMouse(el) {
+          if (el._magicTracked) return;
+          el._magicTracked = true;
+          el.addEventListener('mousemove', function(e) {
+            const rect = el.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width  * 100).toFixed(1) + '%';
+            const y = ((e.clientY - rect.top)  / rect.height * 100).toFixed(1) + '%';
+            el.style.setProperty('--mouse-x', x);
+            el.style.setProperty('--mouse-y', y);
+          });
+        }
+
+        /* ------ Application des effets login ------ */
+        function applyLoginEffects() {
+          // Cherche le conteneur de la card de login
+          // La page login a un formulaire avec un champ username et password
+          const inputs = document.querySelectorAll('input[type="password"], input[type="text"], input[placeholder*="tilisateur"], input[placeholder*="Mot"], input[name*="pass"], input[name*="user"]');
+          if (inputs.length === 0) return false;
+
+          // Remonter jusqu'à la card englobante
+          let card = null;
+          let el = inputs[0];
+          for (let i = 0; i < 8; i++) {
+            el = el.parentElement;
+            if (!el) break;
+            const s = window.getComputedStyle(el);
+            if ((s.background && s.background.includes('rgba') || el.className.includes('glass') || el.className.includes('card') || el.className.includes('login') || el.className.includes('form') || el.className.includes('container')) && el.offsetWidth > 200) {
+              card = el;
+              break;
+            }
+          }
+
+          if (!card) {
+            // Fallback : prend le premier ancêtre avec une taille raisonnable
+            el = inputs[0];
+            for (let i = 0; i < 6; i++) {
+              el = el.parentElement;
+              if (!el) break;
+              if (el.offsetWidth > 200 && el.offsetWidth < window.innerWidth * 0.8) {
+                card = el;
+                break;
+              }
+            }
+          }
+
+          if (card && !card.classList.contains('login-magic-wrap')) {
+            card.classList.add('login-magic-wrap', 'magic-entrance');
+            trackMouse(card);
+          }
+
+          // Bouton de login → pulsating
+          const btns = document.querySelectorAll('button[type="submit"], button');
+          btns.forEach(btn => {
+            const txt = btn.textContent.toLowerCase();
+            if ((txt.includes('connect') || txt.includes('login') || txt.includes('identif') || txt.includes('valider') || txt.includes('sign')) && !btn.classList.contains('pulsating-btn')) {
+              btn.classList.add('pulsating-btn');
+            }
+          });
+
+          // Wrapping des inputs pour shimmer
+          inputs.forEach(input => {
+            if (!input.parentElement.classList.contains('magic-input-wrap')) {
+              const wrap = document.createElement('div');
+              wrap.className = 'magic-input-wrap';
+              input.parentNode.insertBefore(wrap, input);
+              wrap.appendChild(input);
+            }
+          });
+
+          return true;
+        }
+
+        /* ------ Application des effets menus / nav ------ */
+        function applyNavEffects() {
+          // Cherche les éléments de navigation sidebar
+          const navItems = document.querySelectorAll('nav a, nav button, [class*="sidebar"] a, [class*="sidebar"] button, [class*="nav"] a, [class*="menu"] li, [class*="nav-item"]');
+          navItems.forEach(item => {
+            if (!item.classList.contains('magic-nav-item')) {
+              item.classList.add('magic-nav-item');
+            }
+          });
+
+          // Cards du dashboard → MagicCard glow
+          const cards = document.querySelectorAll('[class*="card"], [class*="glass"], [class*="stat"], [class*="widget"], [class*="panel"]');
+          cards.forEach(card => {
+            if (!card.classList.contains('magic-card-wrapper') && !card.classList.contains('login-magic-wrap')) {
+              card.classList.add('magic-card-wrapper');
+              trackMouse(card);
+            }
+          });
+        }
+
+        /* ------ Détection page login vs dashboard ------ */
+        function isLoginPage() {
+          return !!document.querySelector('input[type="password"]');
+        }
+
+        /* ------ Application complète ------ */
+        function applyEffects() {
+          if (isLoginPage()) {
+            addGlowBg();
+            applyLoginEffects();
+          } else {
+            removeGlowBg();
+            applyNavEffects();
+          }
+        }
+
+        /* ------ Observer les changements React (SPA) ------ */
+        const root = document.getElementById('root');
+        if (root) {
+          const observer = new MutationObserver(function() {
+            // Léger délai pour que React finisse son render
+            clearTimeout(window._magicTimer);
+            window._magicTimer = setTimeout(applyEffects, 120);
+          });
+          observer.observe(root, { childList: true, subtree: true, attributes: false });
+        }
+
+        // Application initiale dès que le DOM est prêt
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(applyEffects, 300);
+          });
+        } else {
+          setTimeout(applyEffects, 300);
+        }
+
+      })();
+    </script>
   </body>
 </html>
 
