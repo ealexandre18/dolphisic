@@ -1,10 +1,26 @@
-with open("dist/assets/index-CzgsKiV0.css.bak", "r", encoding="utf-8") as f:
-    orig = f.read()
+with open("dist/assets/index-DyRupmtp.js", "r", encoding="utf-8") as f:
+    js_content = f.read()
 
-idx = orig.find(".leaflet-container")
-print("Index of .leaflet-container in original CSS:", idx)
+query = "container:"
+# We want to find container style in the styles object F, which was around index 252801.
+# Let's search backwards or starting from 250000.
+idx = js_content.find(query, 250000)
+print("Index of 'container:':", idx)
 if idx != -1:
-    print("Content before .leaflet-container (first 1000 chars):")
-    print(orig[:min(idx, 1000)])
-    print("...")
-    print("Length of content before .leaflet-container:", idx)
+    print(repr(js_content[idx-50:idx+250]))
+else:
+    print("Not found")
+
+
+
+
+
+
+
+
+
+
+
+
+
+

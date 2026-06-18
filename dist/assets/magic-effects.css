@@ -16,11 +16,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(
-    600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-    rgba(230, 57, 70, 0.18) 0%,
-    transparent 60%
-  );
+  background: none;
   opacity: 0;
   transition: opacity 0.4s ease;
   pointer-events: none;
@@ -109,11 +105,7 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: radial-gradient(
-    500px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-    rgba(230, 57, 70, 0.15) 0%,
-    transparent 55%
-  );
+  background: none;
   opacity: 0;
   transition: opacity 0.5s ease;
   pointer-events: none;
