@@ -34,7 +34,7 @@ echo ======================================================
 echo.
 
 echo Lancement du serveur DolphiSIC...
-start "DolphiSIC Server" /min cmd /c "cd /d "%~dp0" && python server.py"
+start "DolphiSIC Debug Server" cmd /k "cd /d ""%~dp0"" && set DOLPHISIC_DEBUG=1 && python server.py"
 
 echo Attente du demarrage (2 secondes)...
 timeout /t 2 /nobreak >nul
@@ -50,6 +50,6 @@ pause >nul
 
 echo.
 echo Arret du serveur...
-taskkill /fi "windowtitle eq DolphiSIC Server*" /f >nul 2>&1
+taskkill /fi "windowtitle eq DolphiSIC Debug Server*" /f >nul 2>&1
 echo Serveur arrete.
 timeout /t 1 >nul

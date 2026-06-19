@@ -3,6 +3,7 @@ import sys
 import sqlite3
 import hashlib
 import json
+import re
 import time
 from flask import Flask, request, jsonify, send_from_directory, g
 from flask_cors import CORS
@@ -20,6 +21,51 @@ class Colors:
     RESET = '\033[0m'
     BOLD = '\033[1m'
 
+
+ANSI_RE = re.compile(r'\x1b\[[0-9;]*m')
+DEBUG_LOG_FILE = None
+SENSITIVE_KEYS = ('password', 'pass', 'mot_de_passe', 'token', 'secret', 'api_key', 'apikey')
+
+
+def strip_ansi(value):
+    return ANSI_RE.sub('', str(value))
+
+
+def redact_text(value):
+    text = str(value)
+    pattern = re.compile(r'(?i)\b(password|pass|mot_de_passe|token|secret|api[_-]?key)\s*[:=]\s*("[^"]*"|\'[^\']*\'|[^\s,}]+)')
+    return pattern.sub(lambda match: f"{match.group(1)}=********", text)
+
+
+def redact_payload(value):
+    if isinstance(value, dict):
+        redacted = {}
+        for key, item in value.items():
+            key_text = str(key).lower()
+            if any(sensitive in key_text for sensitive in SENSITIVE_KEYS):
+                redacted[key] = '********'
+            else:
+                redacted[key] = redact_payload(item)
+        return redacted
+    if isinstance(value, (list, tuple)):
+        return type(value)(redact_payload(item) for item in value)
+    return value
+
+
+def write_log(category, message, color=Colors.RESET):
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    message = redact_text(message)
+    console_line = f"[{timestamp}] {color}[{category}]{Colors.RESET} {message}"
+    print(console_line, flush=True)
+
+    if DEBUG_LOG_FILE:
+        file_line = strip_ansi(console_line)
+        try:
+            with open(DEBUG_LOG_FILE, 'a', encoding='utf-8') as log_file:
+                log_file.write(file_line + '\n')
+        except Exception:
+            pass
+
 # Initialize ANSI support on Windows CMD/PowerShell if needed
 if sys.platform == 'win32':
     try:
@@ -31,19 +77,25 @@ if sys.platform == 'win32':
         os.system('')
 
 def log_db(message):
-    print(f"{Colors.CYAN}[DATABASE]{Colors.RESET} {message}", flush=True)
+    write_log('DATABASE', message, Colors.CYAN)
 
 def log_ui(message):
-    print(f"{Colors.GREEN}[UI]{Colors.RESET} {message}", flush=True)
+    write_log('UI', message, Colors.GREEN)
 
 def log_logic(message):
-    print(f"{Colors.MAGENTA}[LOGIC]{Colors.RESET} {message}", flush=True)
+    write_log('LOGIC', message, Colors.MAGENTA)
 
 # Resolve the directory of server.py using its absolute path.
 # This works regardless of the working directory when Python is launched.
 SERVER_DIR = os.path.dirname(os.path.abspath(__file__))
 # Change cwd to SERVER_DIR so SQLite relative paths always resolve correctly.
 os.chdir(SERVER_DIR)
+
+if os.environ.get('DOLPHISIC_DEBUG') == '1':
+    logs_dir = os.path.join(SERVER_DIR, 'logs')
+    os.makedirs(logs_dir, exist_ok=True)
+    DEBUG_LOG_FILE = os.path.join(logs_dir, f"dolphisic-debug-{datetime.now().strftime('%Y%m%d-%H%M%S')}.log")
+    write_log('DEBUG', f"Debug log file: {DEBUG_LOG_FILE}", Colors.BLUE)
 
 app = Flask(
     __name__,
@@ -160,10 +212,11 @@ def verify_hash(password, stored_hash):
 def query_db(db_path, query, args=(), one=False, commit=False):
     db_name = os.path.basename(db_path)
     clean_query = " ".join(query.strip().split())
+    safe_args = redact_payload(args)
     if commit:
-        log_db(f"{Colors.YELLOW}WRITE{Colors.RESET} on {Colors.BOLD}{db_name}{Colors.RESET} | Query: {clean_query} | Args: {args}")
+        log_db(f"{Colors.YELLOW}WRITE{Colors.RESET} on {Colors.BOLD}{db_name}{Colors.RESET} | Query: {clean_query} | Args: {safe_args}")
     else:
-        log_db(f"READ on {Colors.BOLD}{db_name}{Colors.RESET} | Query: {clean_query} | Args: {args}")
+        log_db(f"READ on {Colors.BOLD}{db_name}{Colors.RESET} | Query: {clean_query} | Args: {safe_args}")
         
     conn = get_db_connection(db_path)
     cur = conn.cursor()
@@ -189,7 +242,15 @@ def start_timer():
     g.start_time = time.time()
     # Skip UI logs endpoint to prevent console spam
     if request.path != '/api/logs/ui':
-        log_logic(f"API Request: {Colors.BOLD}{request.method} {request.path}{Colors.RESET} | Client: {request.remote_addr}")
+        details = []
+        if request.args:
+            details.append(f"Query: {redact_payload(dict(request.args))}")
+        if request.is_json:
+            body = request.get_json(silent=True)
+            if body:
+                details.append(f"Body: {redact_payload(body)}")
+        suffix = f" | {' | '.join(details)}" if details else ""
+        log_logic(f"API Request: {Colors.BOLD}{request.method} {request.path}{Colors.RESET} | Client: {request.remote_addr}{suffix}")
 
 @app.after_request
 def log_request(response):
@@ -207,7 +268,13 @@ def log_request(response):
     else:
         status_color = Colors.RED
         
-    log_logic(f"API Response: {request.method} {request.path} -> {status_color}{status_code} {response.status}{Colors.RESET} | Duration: {duration_ms:.2f}ms")
+    error_details = ""
+    if status_code >= 400 and response.is_json:
+        try:
+            error_details = f" | Error: {redact_payload(response.get_json(silent=True))}"
+        except Exception:
+            error_details = ""
+    log_logic(f"API Response: {request.method} {request.path} -> {status_color}{status_code} {response.status}{Colors.RESET} | Duration: {duration_ms:.2f}ms{error_details}")
     return response
 
 @app.route('/api/logs/ui', methods=['POST'])
@@ -216,7 +283,7 @@ def log_ui_event():
         data = request.json or {}
         event_type = data.get('event', 'unknown').upper()
         path = data.get('path', '/')
-        details = data.get('details', {})
+        details = redact_payload(data.get('details', {}))
         
         if event_type == 'CLICK':
             label = details.get('label', '')
@@ -311,12 +378,13 @@ def get_devices():
             SELECT p.rowid as id, p.num_serie, p.modele, m.marque, p.affectation,
                    p.date_prog, p.date_maj_cle, p.date_cle_a_faire, p.notification_active, p.email_notif,
                    p.code_pocsag, p.immatriculation, p.rfgi, p.version_logiciel, p.classe_service, p.date_achat, p.observation,
-                   p.statut_activite
+                   p.cis, m.type, p.statut_activite
             FROM parc p
             LEFT JOIN materiel m ON TRIM(p.modele) = TRIM(m.modele)
             WHERE TRIM(p.cis) = TRIM(?) AND TRIM(m.type) = TRIM(?)
         """
         rows = query_db(DB_SDIS, query, (cis, device_type))
+        log_logic(f"Device filter results | CIS='{cis}' | Type='{device_type}' | Count={len(rows)}")
         return jsonify([dict(r) for r in rows])
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -452,15 +520,19 @@ def toggle_device_notification(rowid):
     data = request.json or {}
     active = data.get('notification_active', False)
     email = data.get('email_notif') if active else None
+    safe_email = '********' if email else None
+    log_logic(f"Toggling notification for Device ID={rowid} | Active={bool(active)} | Email={safe_email}")
     
     try:
         # Check if device exists
         dev = query_db(DB_SDIS, "SELECT rowid FROM parc WHERE rowid = ?", (rowid,), one=True)
         if not dev:
+            log_logic(f"Failed to toggle notification: Device ID={rowid} not found")
             return jsonify({'error': 'Équipement introuvable'}), 404
             
         query_db(DB_SDIS, "UPDATE parc SET notification_active = ?, email_notif = ? WHERE rowid = ?",
                  (1 if active else 0, email, rowid), commit=True)
+        log_logic(f"Notification updated for Device ID={rowid} | Active={1 if active else 0}")
         return jsonify({
             'success': True, 
             'message': 'Alerte mise à jour avec succès', 
@@ -468,6 +540,7 @@ def toggle_device_notification(rowid):
             'email_notif': email
         })
     except Exception as e:
+        log_logic(f"Failed to toggle notification for Device ID={rowid}: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 # --- ADVANCED SEARCH ---
@@ -533,6 +606,17 @@ def advanced_search():
 
     try:
         rows = query_db(DB_SDIS, query, params)
+        criteria = {
+            'cis': cis,
+            'modele': modele,
+            'type': device_type,
+            'num_serie': num_serie,
+            'affectation': affectation,
+            'observation': observation,
+            'version_logiciel': version_logiciel,
+        }
+        active_criteria = {k: v for k, v in criteria.items() if v}
+        log_logic(f"Advanced search results | Criteria: {active_criteria or 'none'} | Count={len(rows)}")
         return jsonify([dict(r) for r in rows])
     except Exception as e:
         return jsonify({'error': str(e)}), 500

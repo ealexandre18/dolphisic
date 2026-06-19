@@ -1,16 +1,16 @@
-# Graph Report - PROJET SDIS  (2026-06-18)
+# Graph Report - PROJET SDIS  (2026-06-19)
 
 ## Corpus Check
-- 169 files · ~213,410 words
+- 196 files · ~244,384 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2182 nodes · 2554 edges · 171 communities (128 shown, 43 thin omitted)
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 66 edges (avg confidence: 0.8)
+- 2978 nodes · 5976 edges · 227 communities (184 shown, 43 thin omitted)
+- Extraction: 85% EXTRACTED · 15% INFERRED · 0% AMBIGUOUS · INFERRED: 897 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `99ab9478`
+- Built from commit: `d90c8f71`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -164,18 +164,48 @@
 - [[_COMMUNITY_Community 157|Community 157]]
 - [[_COMMUNITY_Community 158|Community 158]]
 - [[_COMMUNITY_Community 159|Community 159]]
+- [[_COMMUNITY_Community 171|Community 171]]
+- [[_COMMUNITY_Community 172|Community 172]]
+- [[_COMMUNITY_Community 173|Community 173]]
+- [[_COMMUNITY_Community 174|Community 174]]
+- [[_COMMUNITY_Community 175|Community 175]]
+- [[_COMMUNITY_Community 176|Community 176]]
+- [[_COMMUNITY_Community 177|Community 177]]
+- [[_COMMUNITY_Community 178|Community 178]]
+- [[_COMMUNITY_Community 179|Community 179]]
+- [[_COMMUNITY_Community 180|Community 180]]
+- [[_COMMUNITY_Community 181|Community 181]]
+- [[_COMMUNITY_Community 182|Community 182]]
+- [[_COMMUNITY_Community 183|Community 183]]
+- [[_COMMUNITY_Community 184|Community 184]]
+- [[_COMMUNITY_Community 185|Community 185]]
+- [[_COMMUNITY_Community 186|Community 186]]
+- [[_COMMUNITY_Community 187|Community 187]]
+- [[_COMMUNITY_Community 188|Community 188]]
+- [[_COMMUNITY_Community 189|Community 189]]
+- [[_COMMUNITY_Community 190|Community 190]]
+- [[_COMMUNITY_Community 191|Community 191]]
+- [[_COMMUNITY_Community 192|Community 192]]
+- [[_COMMUNITY_Community 193|Community 193]]
+- [[_COMMUNITY_Community 194|Community 194]]
+- [[_COMMUNITY_Community 195|Community 195]]
+- [[_COMMUNITY_Community 196|Community 196]]
+- [[_COMMUNITY_Community 197|Community 197]]
+- [[_COMMUNITY_Community 198|Community 198]]
+- [[_COMMUNITY_Community 199|Community 199]]
+- [[_COMMUNITY_Community 204|Community 204]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `TailwindConfigGenerator` - 54 edges
-2. `query_db()` - 40 edges
-3. `TestTailwindConfigGenerator` - 35 edges
-4. `ShadcnInstaller` - 32 edges
-5. `TestShadcnInstaller` - 26 edges
-6. `log_logic()` - 22 edges
-7. `UI Styling Skill` - 17 edges
-8. `color` - 15 edges
-9. `Design` - 14 edges
-10. `Tailwind CSS Customization` - 14 edges
+1. `$()` - 750 edges
+2. `_update()` - 91 edges
+3. `i()` - 67 edges
+4. `dc()` - 55 edges
+5. `TailwindConfigGenerator` - 54 edges
+6. `draw()` - 48 edges
+7. `H()` - 42 edges
+8. `C()` - 41 edges
+9. `ku()` - 40 edges
+10. `query_db()` - 40 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `get_centres()` --references--> `sdis04 SQLite Database`  [INFERRED]
@@ -192,15 +222,15 @@
 ## Import Cycles
 - None detected.
 
-## Communities (171 total, 43 thin omitted)
+## Communities (227 total, 43 thin omitted)
 
 ### Community 0 - "V2 Server API Endpoints"
 Cohesion: 0.07
 Nodes (57): ASSETS_DIR, __dirname, initCommand(), InitOptions, templateInstall(), tryGitHubInstall(), removeSkillDir(), uninstallCommand() (+49 more)
 
 ### Community 1 - "Core Server API Endpoints"
-Cohesion: 0.07
-Nodes (60): carto_sdis04 SQLite Database, EQUIPEMENT_PARC Entity, sdis04 SQLite Database, SITES Entity, STOCK Entity, 1. Diagramme Entité-Association (Mermaid ERD), 2. Description des Associations et Cardinalités, Base de données : `carto_sdis04.db` (+52 more)
+Cohesion: 0.05
+Nodes (70): carto_sdis04 SQLite Database, EQUIPEMENT_PARC Entity, Project Structure Flattening, sdis04 SQLite Database, SITES Entity, STOCK Entity, 1. Diagramme Entité-Association (Mermaid ERD), 2. Description des Associations et Cardinalités (+62 more)
 
 ### Community 2 - "Server Site & Asset Operations"
 Cohesion: 0.05
@@ -215,16 +245,16 @@ Cohesion: 0.67
 Nodes (3): Data-Dense Dashboard Style, Real-Time / Operations Landing Pattern, Dashboard Design Specifications (UTF-8)
 
 ### Community 5 - "Device Cryptography & Key Management"
-Cohesion: 0.04
-Nodes (48): $type, $value, background, destructive, destructive-foreground, foreground, muted, muted-foreground (+40 more)
+Cohesion: 0.11
+Nodes (19): $type, $value, background, foreground, muted-foreground, primary, primary-hover, secondary (+11 more)
 
 ### Community 6 - "V2 Cryptography & Key Management"
-Cohesion: 0.06
-Nodes (45): $type, $value, $type, $value, bg, fg, font-size, hover-bg (+37 more)
+Cohesion: 0.20
+Nodes (12): $type, $value, bg, bg, padding, shadow, card, bg (+4 more)
 
 ### Community 7 - "Project Architecture & Structure"
-Cohesion: 0.18
-Nodes (10): Project Structure Flattening, 1. Simplification de la Structure du Projet (Flattening), 2. Résolution du Bug d'Accès à la Base de Données, 3. Correction de l'Affichage et du Défilement des Onglets (Points Hauts / Perroquets), 4. Refonte du Formulaire d'Ajout et de Gestion des Stocks, 5. Correction de la Suppression des Liaisons et Ajout des Boutons de Suppression Globaux, 🚀 Comment Déployer et Copier le Projet, 🛠️ Modifications Apportées (+2 more)
+Cohesion: 0.03
+Nodes (91): $(), active(), addControllers(), addElements(), addPlugins(), addScales(), _animateOptions(), be() (+83 more)
 
 ### Community 14 - "Server UI Logging"
 Cohesion: 0.05
@@ -255,8 +285,8 @@ Cohesion: 0.06
 Nodes (34): Banner Design (Built-in), Banner: Design Rules, Banner: Quick Size Reference, Banner: Top Art Styles, Banner: Workflow, CIP Design (Built-in), CIP: Generate Brief, CIP: Generate Mockups (+26 more)
 
 ### Community 28 - "Community 28"
-Cohesion: 0.06
-Nodes (34): $type, $value, $type, $value, $type, $value, $type, $value (+26 more)
+Cohesion: 0.09
+Nodes (22): $type, $value, $type, $value, $type, $value, $type, $value (+14 more)
 
 ### Community 29 - "Community 29"
 Cohesion: 0.06
@@ -503,8 +533,8 @@ Cohesion: 0.18
 Nodes (10): Color Palette, Colors, Core Visual Elements, Logo, Logo, Quick Checks, Typography, Typography (+2 more)
 
 ### Community 90 - "Community 90"
-Cohesion: 0.18
-Nodes (11): fast, normal, slow, $type, $value, $type, $value, primitive (+3 more)
+Cohesion: 0.20
+Nodes (10): fast, normal, slow, $type, $value, $type, $value, duration (+2 more)
 
 ### Community 91 - "Community 91"
 Cohesion: 0.18
@@ -535,8 +565,8 @@ Cohesion: 0.22
 Nodes (8): Available Domains, Available Stacks, How to Use, Output Formats, Prerequisites, Rule Categories by Priority, Search Reference, UI/UX Pro Max - Design Intelligence
 
 ### Community 98 - "Community 98"
-Cohesion: 0.29
-Nodes (8): $type, $value, $type, $value, radius, default, full, default
+Cohesion: 0.19
+Nodes (14): $type, $value, $type, $value, $type, $value, primitive, radius (+6 more)
 
 ### Community 99 - "Community 99"
 Cohesion: 0.25
@@ -563,8 +593,8 @@ Cohesion: 0.33
 Nodes (5): References (Knowledge Base), Routing, Slides, Subcommands, When to Use
 
 ### Community 105 - "Community 105"
-Cohesion: 0.47
-Nodes (6): sm, shadow, sm, sm, $type, $value
+Cohesion: 0.60
+Nodes (5): sm, sm, sm, $type, $value
 
 ### Community 106 - "Community 106"
 Cohesion: 0.33
@@ -603,12 +633,12 @@ Cohesion: 0.67
 Nodes (4): xl, xl, $type, $value
 
 ### Community 115 - "Community 115"
-Cohesion: 0.67
-Nodes (4): $type, $value, md, md
+Cohesion: 0.10
+Nodes (33): An(), average(), bn(), clear(), clearCache(), cr(), _dataCheck(), _destroy() (+25 more)
 
 ### Community 116 - "Community 116"
-Cohesion: 0.67
-Nodes (4): $type, $value, none, none
+Cohesion: 0.25
+Nodes (22): bc(), bl(), cl(), fl(), il(), interpolate(), jp(), ku() (+14 more)
 
 ### Community 117 - "Community 117"
 Cohesion: 0.50
@@ -618,6 +648,126 @@ Nodes (4): Common Sticking Points, Pre-Delivery Checklist, Query Strategy, Tips 
 Cohesion: 0.50
 Nodes (4): Must Use, Recommended, Skip, When to Apply
 
+### Community 171 - "Community 171"
+Cohesion: 0.15
+Nodes (12): component, $type, $value, dark, semantic, $schema, $type, $value (+4 more)
+
+### Community 172 - "Community 172"
+Cohesion: 0.20
+Nodes (10): fg, font-size, hover-bg, button, $type, $value, $type, $value (+2 more)
+
+### Community 173 - "Community 173"
+Cohesion: 0.29
+Nodes (8): padding-x, input, $type, $value, focus-ring, padding-x, $type, $value
+
+### Community 174 - "Community 174"
+Cohesion: 0.60
+Nodes (5): $type, $value, border, border, border
+
+### Community 175 - "Community 175"
+Cohesion: 0.60
+Nodes (5): radius, radius, radius, $type, $value
+
+### Community 176 - "Community 176"
+Cohesion: 0.67
+Nodes (4): padding-y, padding-y, $type, $value
+
+### Community 177 - "Community 177"
+Cohesion: 0.67
+Nodes (3): destructive, $type, $value
+
+### Community 178 - "Community 178"
+Cohesion: 0.67
+Nodes (3): destructive-foreground, $type, $value
+
+### Community 179 - "Community 179"
+Cohesion: 0.67
+Nodes (3): muted, $type, $value
+
+### Community 180 - "Community 180"
+Cohesion: 0.67
+Nodes (3): primary-foreground, $type, $value
+
+### Community 181 - "Community 181"
+Cohesion: 0.67
+Nodes (3): ring, $type, $value
+
+### Community 182 - "Community 182"
+Cohesion: 0.67
+Nodes (3): secondary-foreground, $type, $value
+
+### Community 183 - "Community 183"
+Cohesion: 0.05
+Nodes (63): applyStack(), aspectRatio(), _calculateBarIndexPixels(), _calculateBarValuePixels(), calculateCircumference(), _calculatePadding(), calculateTotal(), _circumference() (+55 more)
+
+### Community 184 - "Community 184"
+Cohesion: 0.11
+Nodes (56): addEventListener(), af(), at(), b(), bd(), bf(), bt(), cf() (+48 more)
+
+### Community 185 - "Community 185"
+Cohesion: 0.07
+Nodes (46): afterAutoSkip(), buildLookupTable(), buildTicks(), ca(), calculateLabelRotation(), cn(), _computeLabelItems(), _computeLabelSizes() (+38 more)
+
+### Community 186 - "Community 186"
+Cohesion: 0.07
+Nodes (79): a(), ap(), apply(), as(), bo(), bs(), createResolver(), cs() (+71 more)
+
+### Community 187 - "Community 187"
+Cohesion: 0.05
+Nodes (95): ad(), adjustHitBoxes(), ae(), afterDraw(), Au(), bu(), cd(), Co() (+87 more)
+
+### Community 188 - "Community 188"
+Cohesion: 0.17
+Nodes (36): aa(), ac(), bi(), cc(), ce(), ci(), da(), dc() (+28 more)
+
+### Community 189 - "Community 189"
+Cohesion: 0.05
+Nodes (71): acquireContext(), afterBuildTicks(), afterCalculateLabelRotation(), afterDataLimits(), afterDatasetsUpdate(), afterFit(), afterSetDimensions(), afterTickToLabelConversion() (+63 more)
+
+### Community 190 - "Community 190"
+Cohesion: 0.31
+Nodes (11): beforeLayout(), gc(), hl(), inXRange(), inYRange(), jc(), kc(), Mc() (+3 more)
+
+### Community 191 - "Community 191"
+Cohesion: 0.16
+Nodes (28): add(), ai(), C(), di(), ei(), Fi(), _getAnims(), getDevicePixelRatio() (+20 more)
+
+### Community 192 - "Community 192"
+Cohesion: 0.20
+Nodes (15): Ao(), dataset(), Fo(), getRange(), Gi(), index(), ji(), Ki() (+7 more)
+
+### Community 193 - "Community 193"
+Cohesion: 0.15
+Nodes (27): alpha(), br(), Ct(), D(), E(), ee(), ep(), et() (+19 more)
+
+### Community 194 - "Community 194"
+Cohesion: 0.67
+Nodes (4): $type, $value, none, none
+
+### Community 195 - "Community 195"
+Cohesion: 0.21
+Nodes (16): ba(), formats(), getLabels(), getMaxOffset(), getMaxOverflow(), init(), _insertElements(), parse() (+8 more)
+
+### Community 196 - "Community 196"
+Cohesion: 0.67
+Nodes (3): $type, $value, 16
+
+### Community 197 - "Community 197"
+Cohesion: 0.15
+Nodes (23): addBox(), Al(), beforeDatasetDraw(), beforeDatasetsDraw(), beforeDraw(), dl(), el(), first() (+15 more)
+
+### Community 198 - "Community 198"
+Cohesion: 0.67
+Nodes (3): $type, $value, 1
+
+### Community 199 - "Community 199"
+Cohesion: 0.67
+Nodes (3): $type, $value, 3
+
+### Community 204 - "Community 204"
+Cohesion: 0.67
+Nodes (3): $type, $value, 8
+
 ## Knowledge Gaps
 - **1041 isolated node(s):** `$schema`, `$value`, `$type`, `$value`, `$type` (+1036 more)
   These have ≤1 connection - possible missing edges or undocumented components.
@@ -626,17 +776,17 @@ Nodes (4): Must Use, Recommended, Skip, When to Apply
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `primitive` connect `Community 90` to `Server Site & Asset Operations`, `Community 98`, `Community 69`, `Device Cryptography & Key Management`, `Community 105`, `Community 28`?**
-  _High betweenness centrality (0.011) - this node is a cross-community bridge._
-- **Why does `color` connect `Device Cryptography & Key Management` to `V2 Cryptography & Key Management`?**
+- **Why does `$()` connect `Project Architecture & Structure` to `Community 192`, `Community 193`, `Community 195`, `Community 197`, `Community 115`, `Community 116`, `Community 183`, `Community 184`, `Community 185`, `Community 186`, `Community 187`, `Community 188`, `Community 189`, `Community 190`, `Community 191`?**
+  _High betweenness centrality (0.059) - this node is a cross-community bridge._
+- **Why does `primitive` connect `Community 98` to `Server Site & Asset Operations`, `Community 69`, `Community 171`, `Community 90`, `Community 28`?**
   _High betweenness centrality (0.006) - this node is a cross-community bridge._
-- **Why does `color` connect `Server Site & Asset Operations` to `Community 90`?**
-  _High betweenness centrality (0.005) - this node is a cross-community bridge._
+- **Why does `color` connect `Server Site & Asset Operations` to `Community 98`?**
+  _High betweenness centrality (0.003) - this node is a cross-community bridge._
+- **Are the 12 inferred relationships involving `_update()` (e.g. with `bs()` and `bt()`) actually correct?**
+  _`_update()` has 12 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 2 inferred relationships involving `i()` (e.g. with `dn()` and `ld()`) actually correct?**
+  _`i()` has 2 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 14 inferred relationships involving `dc()` (e.g. with `ac()` and `aa()`) actually correct?**
+  _`dc()` has 14 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 33 inferred relationships involving `TailwindConfigGenerator` (e.g. with `TestTailwindConfigGenerator` and `.test_add_breakpoints()`) actually correct?**
   _`TailwindConfigGenerator` has 33 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 23 inferred relationships involving `ShadcnInstaller` (e.g. with `TestShadcnInstaller` and `.test_add_all_components_dry_run()`) actually correct?**
-  _`ShadcnInstaller` has 23 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `Resolve token reference like {primitive.color.ocean-blue.500} to hex value.`, `Load colors from assets/design-tokens.json for overlay gradients.      Resolve`, `Load background configuration from CSV.` to the rest of the system?**
-  _1276 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `V2 Server API Endpoints` be split into smaller, more focused modules?**
-  _Cohesion score 0.06559356136820925 - nodes in this community are weakly interconnected._

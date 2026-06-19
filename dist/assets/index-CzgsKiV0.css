@@ -17,3 +17,200 @@
   background-color: var(--primary) !important;
   border-radius: 10px !important;
 }
+
+.table-container {
+  container-type: inline-size;
+  overflow-x: hidden;
+}
+
+.table-container table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.table-container th,
+.table-container td {
+  padding: 10px 8px;
+  line-height: 1.25;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
+  vertical-align: middle;
+  text-align: center;
+}
+
+.table-container th {
+  font-size: 0.72rem;
+}
+
+.table-container td {
+  height: 58px;
+}
+
+.table-container .badge {
+  max-width: 100%;
+  justify-content: center;
+  gap: 4px;
+  line-height: 1.15;
+  text-align: center;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.table-container td > span {
+  max-width: 100%;
+  justify-content: center;
+  text-align: center;
+}
+
+.table-container td > span[style*="inline-flex"] {
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.table-container td:last-child {
+  vertical-align: middle;
+}
+
+.table-container td:last-child,
+.table-container td:last-child .btn,
+.table-container td:last-child button {
+  white-space: nowrap;
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+
+.table-container th:last-child,
+.table-container td:last-child {
+  width: 166px;
+}
+
+.table-container td:last-child button {
+  flex: 0 0 auto;
+  width: 26px !important;
+  min-width: 26px;
+  height: 26px !important;
+  padding: 5px !important;
+}
+
+.table-container td:last-child .btn {
+  width: 26px !important;
+  min-width: 26px;
+  height: 26px !important;
+  padding: 5px !important;
+  font-size: 0 !important;
+}
+
+.table-container td:last-child .btn svg {
+  margin: 0;
+}
+
+@container (max-width: 860px) {
+  .table-container table:has(thead th:nth-child(7)) th:nth-child(5),
+  .table-container table:has(thead th:nth-child(7)) td:nth-child(5) {
+    display: none;
+  }
+}
+
+@container (max-width: 700px) {
+  .table-container table:has(thead th:nth-child(7)) th:nth-child(4),
+  .table-container table:has(thead th:nth-child(7)) td:nth-child(4),
+  .table-container table:has(thead th:nth-child(5):last-child) th:nth-child(3),
+  .table-container table:has(thead th:nth-child(5):last-child) td:nth-child(3) {
+    display: none;
+  }
+}
+
+@container (max-width: 640px) {
+  .table-container table:has(thead th:nth-child(7)) th:nth-child(6),
+  .table-container table:has(thead th:nth-child(7)) td:nth-child(6) {
+    display: none;
+  }
+}
+
+@container (max-width: 560px) {
+  .table-container table:has(thead th:nth-child(7)) th:nth-child(3),
+  .table-container table:has(thead th:nth-child(7)) td:nth-child(3),
+  .table-container table:has(thead th:nth-child(4):last-child) th:nth-child(3),
+  .table-container table:has(thead th:nth-child(4):last-child) td:nth-child(3) {
+    display: none;
+  }
+
+  .table-container th:last-child,
+  .table-container td:last-child {
+    width: 136px;
+  }
+}
+
+@keyframes gradientMenuIn {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+.glass nav button {
+  isolation: isolate;
+  overflow: visible;
+  animation: gradientMenuIn 420ms cubic-bezier(.16, 1, .3, 1) both;
+  will-change: transform;
+}
+
+.glass nav button::before,
+.glass nav button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 320ms ease, transform 320ms ease;
+}
+
+.glass nav button::before {
+  z-index: 0;
+  background: linear-gradient(45deg, var(--primary), var(--secondary));
+  transform: scaleX(0.72);
+}
+
+.glass nav button::after {
+  inset: 10px 8px -12px;
+  z-index: -2;
+  background: linear-gradient(45deg, rgba(var(--primary-rgb), .8), rgba(65, 90, 119, .85));
+  filter: blur(16px);
+}
+
+.glass nav button:hover,
+.glass nav button:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: none;
+}
+
+.glass nav button:hover::before,
+.glass nav button:hover::after,
+.glass nav button:focus-visible::before,
+.glass nav button:focus-visible::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.glass nav button > svg,
+.glass nav button > span {
+  position: relative;
+  z-index: 1;
+  transition: transform 320ms ease, opacity 320ms ease;
+}
+
+.glass nav button:hover > svg,
+.glass nav button:focus-visible > svg {
+  transform: scale(0.86);
+}
+
+.glass nav button:active {
+  transform: translateY(0);
+}
