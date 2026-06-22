@@ -1,0 +1,6 @@
+node_modules/
+.next/
+*.log
+backend/__pycache__/
+backend/logs/
+backend/notification_settings.json

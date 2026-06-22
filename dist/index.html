@@ -6,6 +6,639 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="DolphiSIC - Gestion du parc matériel radio et cartographie opérationnelle du SDIS 04" />
     <title>DolphiSIC - SDIS 04</title>
+    <style>
+      .dolphisic-cookie-banner {
+        position: fixed;
+        left: 24px;
+        right: 24px;
+        bottom: 24px;
+        z-index: 2147483000;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 18px 20px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        background: rgba(15, 23, 42, 0.96);
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+        color: #f8fafc;
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .dolphisic-cookie-banner strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 0.95rem;
+      }
+
+      .dolphisic-cookie-banner p {
+        margin: 0;
+        color: rgba(248, 250, 252, 0.78);
+        font-size: 0.84rem;
+        line-height: 1.45;
+      }
+
+      .dolphisic-cookie-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+      }
+
+      .dolphisic-cookie-actions button {
+        min-width: 104px;
+        height: 40px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        cursor: pointer;
+        font-weight: 800;
+        font-size: 0.84rem;
+        font-family: inherit;
+      }
+
+      .dolphisic-cookie-accept {
+        background: #e63946;
+        color: #ffffff;
+      }
+
+      .dolphisic-cookie-refuse {
+        background: rgba(255, 255, 255, 0.06);
+        color: #f8fafc;
+      }
+
+      button[title="Changer le thème"] {
+        display: none !important;
+      }
+
+      .dolphi-extension-main {
+        flex: 1;
+        min-width: 0;
+        height: 100%;
+        overflow-y: auto;
+        padding: 24px;
+        color: var(--text-main);
+      }
+
+      .dolphi-extension-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 24px;
+      }
+
+      .dolphi-extension-header h1 {
+        margin: 0 0 4px;
+        font-size: 2rem;
+        font-weight: 800;
+      }
+
+      .dolphi-extension-header p,
+      .dolphi-muted {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+      }
+
+      .dolphi-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 24px;
+      }
+
+      .dolphi-summary-card {
+        min-width: 0;
+        padding: 18px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        background: var(--card-bg-solid);
+        color: var(--text-main);
+        font-family: inherit;
+        text-align: left;
+      }
+
+      button.dolphi-summary-card {
+        cursor: pointer;
+        transition: var(--transition);
+      }
+
+      button.dolphi-summary-card.active {
+        border-color: var(--primary);
+        box-shadow: inset 0 0 0 1px var(--primary);
+      }
+
+      .dolphi-summary-card span {
+        display: block;
+        color: var(--text-muted);
+        font-size: 0.74rem;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .dolphi-summary-card strong {
+        display: block;
+        margin-top: 8px;
+        font-size: 1.8rem;
+      }
+
+      .dolphi-dashboard-columns,
+      .dolphi-settings-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
+      }
+
+      .dolphi-section {
+        margin-top: 10px;
+        padding: 20px 0;
+        border-top: 1px solid var(--border-color);
+      }
+
+      .dolphi-section-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .dolphi-section h2 {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .dolphi-operation-list {
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+      }
+
+      .dolphi-operation-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        min-height: 62px;
+        padding: 13px 15px;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .dolphi-operation-row:last-child {
+        border-bottom: 0;
+      }
+
+      .dolphi-operation-row > div:first-child {
+        min-width: 0;
+      }
+
+      .dolphi-operation-main {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .dolphi-goto-device {
+        width: 30px;
+        height: 30px;
+        flex-shrink: 0;
+        padding: 0;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        background: transparent;
+        color: var(--primary);
+        cursor: pointer;
+        font-size: 1rem;
+      }
+
+      .dolphi-operation-row strong,
+      .dolphi-operation-row small {
+        display: block;
+      }
+
+      .dolphi-operation-row small {
+        overflow-wrap: anywhere;
+        margin-top: 3px;
+        color: var(--text-muted);
+      }
+
+      .dolphi-operation-delay {
+        flex-shrink: 0;
+        color: var(--primary);
+        text-align: right;
+      }
+
+      .dolphi-empty {
+        padding: 22px;
+        color: var(--text-muted);
+        text-align: center;
+      }
+
+      .dolphi-field {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .dolphi-setting-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        min-height: 48px;
+      }
+
+      .dolphi-setting-row + .dolphi-setting-row {
+        border-top: 1px solid var(--border-color);
+      }
+
+      .dolphi-checks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 22px;
+        margin: 18px 0;
+      }
+
+      .dolphi-checks label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .dolphi-feedback {
+        margin-bottom: 16px;
+        padding: 10px 14px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+      }
+
+      .dolphi-feedback.success {
+        border-color: rgba(74, 222, 128, 0.3);
+        color: #4ade80;
+      }
+
+      .dolphi-feedback.error {
+        border-color: rgba(230, 57, 70, 0.35);
+        color: var(--primary);
+      }
+
+      .dolphi-collapse-toggle {
+        position: absolute;
+        top: -16px;
+        right: -24px;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        border: 1px solid var(--border-color);
+        border-radius: 50%;
+        background: var(--card-bg-solid);
+        color: var(--text-muted);
+        cursor: pointer;
+        box-shadow: var(--box-shadow);
+      }
+
+      .dolphi-bulk-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+        padding: 10px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        background: var(--card-bg-solid);
+      }
+
+      .dolphi-bulk-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .dolphi-select-cell {
+        width: 42px;
+        min-width: 42px;
+        text-align: center !important;
+      }
+
+      .dolphi-row-highlight {
+        outline: 2px solid var(--primary);
+        outline-offset: -2px;
+        animation: dolphi-highlight 2.5s ease-out;
+      }
+
+      .dolphi-modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.65);
+      }
+
+      .dolphi-modal {
+        width: 100%;
+        max-width: 440px;
+        padding: 24px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        background: var(--card-bg-solid);
+      }
+
+      .dolphi-modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      @keyframes dolphi-highlight {
+        from { background: rgba(230, 57, 70, 0.24); }
+        to { background: transparent; }
+      }
+
+      .dolphi-sidebar-collapsed {
+        width: var(--sidebar-collapsed) !important;
+      }
+
+      .dolphi-sidebar-collapsed nav button,
+      .dolphi-sidebar-collapsed > div:last-child > button {
+        justify-content: center !important;
+      }
+
+      .dolphi-sidebar-collapsed nav button span,
+      .dolphi-sidebar-collapsed nav button div,
+      .dolphi-sidebar-collapsed > div:first-child span,
+      .dolphi-sidebar-collapsed > div:last-child > button span {
+        display: none !important;
+      }
+
+      .dolphi-custom-view-active nav button:not([data-dolphi-dashboard]) > div {
+        display: none !important;
+      }
+
+      @media (max-width: 720px) {
+        .dolphisic-cookie-banner {
+          left: 12px;
+          right: 12px;
+          bottom: 12px;
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .dolphisic-cookie-actions {
+          width: 100%;
+        }
+
+        .dolphisic-cookie-actions button {
+          flex: 1;
+        }
+
+        .dolphi-extension-main {
+          padding: 16px;
+        }
+
+        .dolphi-extension-header {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .dolphi-summary-grid,
+        .dolphi-dashboard-columns,
+        .dolphi-settings-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+    <script>
+      (function() {
+        'use strict';
+
+        const CONSENT_KEY = 'dolphisic_cookie_consent';
+        const CONSENT_COOKIE = 'dolphisic_cookie_consent';
+        const COOKIE_PREFIX = 'dolphisic_';
+        const MANAGED_KEYS = ['cryptis_token', 'cryptis_user', 'cryptis_theme'];
+        const ONE_YEAR = 60 * 60 * 24 * 365;
+        const nativeGetItem = Storage.prototype.getItem;
+        const nativeSetItem = Storage.prototype.setItem;
+        const nativeRemoveItem = Storage.prototype.removeItem;
+
+        function getNativeLocalStorage(method, key, value) {
+          try {
+            if (method === 'get') return nativeGetItem.call(localStorage, key);
+            if (method === 'set') return nativeSetItem.call(localStorage, key, value);
+            if (method === 'remove') return nativeRemoveItem.call(localStorage, key);
+          } catch (err) {}
+          return null;
+        }
+
+        function getDecision() {
+          return getNativeLocalStorage('get', CONSENT_KEY);
+        }
+
+        function cookieName(key) {
+          return COOKIE_PREFIX + key.replace(/^cryptis_/, '');
+        }
+
+        function setCookie(name, value, maxAge) {
+          document.cookie = name + '=' + encodeURIComponent(value || '') + '; Max-Age=' + maxAge + '; Path=/; SameSite=Lax';
+        }
+
+        function getCookie(name) {
+          const prefix = name + '=';
+          const parts = document.cookie ? document.cookie.split('; ') : [];
+          for (const part of parts) {
+            if (part.indexOf(prefix) === 0) {
+              return decodeURIComponent(part.substring(prefix.length));
+            }
+          }
+          return null;
+        }
+
+        function deleteCookie(name) {
+          document.cookie = name + '=; Max-Age=0; Path=/; SameSite=Lax';
+        }
+
+        function clearManagedCookies() {
+          deleteCookie(CONSENT_COOKIE);
+          MANAGED_KEYS.forEach(function(key) {
+            deleteCookie(cookieName(key));
+          });
+        }
+
+        function migrateStorageToCookies() {
+          MANAGED_KEYS.forEach(function(key) {
+            const value = getNativeLocalStorage('get', key);
+            if (value !== null && value !== undefined) {
+              setCookie(cookieName(key), value, ONE_YEAR);
+            }
+          });
+        }
+
+        const nativeFetch = window.fetch ? window.fetch.bind(window) : null;
+        if (nativeFetch) {
+          window.fetch = function(input, init) {
+            const nextInit = init ? Object.assign({}, init) : {};
+            const headers = new Headers(nextInit.headers || (input instanceof Request ? input.headers : undefined));
+            headers.set('X-DolphiSIC-Cookie-Consent', getDecision() === 'accepted' ? 'accepted' : 'refused');
+            nextInit.headers = headers;
+            const url = typeof input === 'string' ? input : input.url;
+            let advancedCriteria = null;
+            if (url && url.includes('/api/search') && nextInit.body) {
+              try {
+                const body = JSON.parse(nextInit.body);
+                advancedCriteria = {
+                  pocsag: body.version_logiciel || body.pocsag || '',
+                  rfgi: body.observation || body.rfgi || ''
+                };
+                delete body.version_logiciel;
+                delete body.observation;
+                body.pocsag = advancedCriteria.pocsag;
+                body.rfgi = advancedCriteria.rfgi;
+                nextInit.body = JSON.stringify(body);
+              } catch (err) {}
+            }
+            return nativeFetch(input, nextInit).then(async function(response) {
+              if (url && url.includes('/api/devices?') && response.ok) {
+                try {
+                  const devices = await response.clone().json();
+                  if (Array.isArray(devices)) {
+                    window.DolphiSICLastDevices = devices;
+                    const deviceUrl = new URL(url, window.location.origin);
+                    window.DolphiSICLastDeviceQuery = {
+                      cis: deviceUrl.searchParams.get('cis') || '',
+                      type: deviceUrl.searchParams.get('type') || ''
+                    };
+                    setTimeout(function() {
+                      window.dispatchEvent(new CustomEvent('dolphisic-devices-loaded'));
+                    }, 180);
+                  }
+                } catch (err) {}
+              }
+              if (!advancedCriteria || !response.ok) return response;
+              try {
+                const rows = await response.clone().json();
+                if (!Array.isArray(rows)) return response;
+                const pocsag = advancedCriteria.pocsag.toLowerCase();
+                const rfgi = advancedCriteria.rfgi.toLowerCase();
+                const filtered = rows.filter(function(row) {
+                  return (!pocsag || String(row.code_pocsag || '').toLowerCase().includes(pocsag)) &&
+                    (!rfgi || String(row.rfgi || '').toLowerCase().includes(rfgi));
+                });
+                return new Response(JSON.stringify(filtered), {
+                  status: response.status,
+                  statusText: response.statusText,
+                  headers: response.headers
+                });
+              } catch (err) {
+                return response;
+              }
+            });
+          };
+        }
+
+        Storage.prototype.getItem = function(key) {
+          if (this === localStorage && MANAGED_KEYS.includes(key) && getDecision() === 'accepted') {
+            const value = getCookie(cookieName(key));
+            if (value !== null) return value;
+          }
+          return nativeGetItem.apply(this, arguments);
+        };
+
+        Storage.prototype.setItem = function(key, value) {
+          const result = nativeSetItem.apply(this, arguments);
+          if (this === localStorage && MANAGED_KEYS.includes(key) && getDecision() === 'accepted') {
+            setCookie(cookieName(key), value, ONE_YEAR);
+          }
+          return result;
+        };
+
+        Storage.prototype.removeItem = function(key) {
+          const result = nativeRemoveItem.apply(this, arguments);
+          if (this === localStorage && MANAGED_KEYS.includes(key)) {
+            deleteCookie(cookieName(key));
+          }
+          return result;
+        };
+
+        function removeBanner() {
+          const banner = document.querySelector('.dolphisic-cookie-banner');
+          if (banner) banner.remove();
+        }
+
+        function acceptCookies() {
+          getNativeLocalStorage('set', CONSENT_KEY, 'accepted');
+          setCookie(CONSENT_COOKIE, 'accepted', ONE_YEAR);
+          migrateStorageToCookies();
+          removeBanner();
+        }
+
+        function refuseCookies() {
+          getNativeLocalStorage('set', CONSENT_KEY, 'refused');
+          clearManagedCookies();
+          if (nativeFetch) {
+            nativeFetch('/api/logout', { method: 'POST', keepalive: true }).catch(function() {});
+          }
+          removeBanner();
+        }
+
+        function renderBanner() {
+          if (getDecision() || document.querySelector('.dolphisic-cookie-banner')) return;
+          const banner = document.createElement('div');
+          banner.className = 'dolphisic-cookie-banner';
+          banner.innerHTML =
+            '<div>' +
+              '<strong>Gestion des cookies</strong>' +
+              '<p>DolphiSIC peut utiliser des cookies pour conserver la session, le profil utilisateur et le theme choisi. Vous pouvez accepter ou refuser ces cookies.</p>' +
+            '</div>' +
+            '<div class="dolphisic-cookie-actions">' +
+              '<button type="button" class="dolphisic-cookie-refuse">Refuser</button>' +
+              '<button type="button" class="dolphisic-cookie-accept">Accepter</button>' +
+            '</div>';
+          banner.querySelector('.dolphisic-cookie-accept').addEventListener('click', acceptCookies);
+          banner.querySelector('.dolphisic-cookie-refuse').addEventListener('click', refuseCookies);
+          document.body.appendChild(banner);
+        }
+
+        document.addEventListener('click', function(event) {
+          const button = event.target && event.target.closest ? event.target.closest('button') : null;
+          if (!button) return;
+          const label = (button.innerText || button.title || '').toLowerCase();
+          if (label.includes('deconnexion') || label.includes('déconnexion')) {
+            clearManagedCookies();
+            if (nativeFetch) {
+              nativeFetch('/api/logout', { method: 'POST', keepalive: true }).catch(function() {});
+            }
+          }
+        }, true);
+
+        if (getDecision() === 'accepted') {
+          migrateStorageToCookies();
+        } else if (getDecision() === 'refused') {
+          clearManagedCookies();
+        }
+
+        window.DolphiSICCookies = {
+          accept: acceptCookies,
+          refuse: refuseCookies,
+          reset: function() {
+            getNativeLocalStorage('remove', CONSENT_KEY);
+            clearManagedCookies();
+            renderBanner();
+          },
+          decision: getDecision
+        };
+
+        document.addEventListener('DOMContentLoaded', renderBanner);
+      })();
+    </script>
     <script type="module" crossorigin src="/assets/index-DyRupmtp.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-CzgsKiV0.css">
     <link rel="stylesheet" href="/assets/magic-effects.css">
@@ -495,6 +1128,732 @@
             if (e.target === overlay) overlay.remove();
           };
         };
+      })();
+    </script>
+    <script>
+      (function() {
+        'use strict';
+
+        const COLLAPSE_KEY = 'dolphisic_sidebar_collapsed';
+        let extensionMain = null;
+        let reactMain = null;
+        let activeView = null;
+        let dashboardButton = null;
+        let settingsButton = null;
+        let dashboardData = null;
+        let dashboardFilter = 'overdue_cryptage';
+        let pendingDeviceNavigation = null;
+        const selectedDeviceIds = new Set();
+
+        function escapeHtml(value) {
+          return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+        }
+
+        async function fetchJson(url, options) {
+          const response = await fetch(url, options);
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(data.error || 'Erreur serveur');
+          return data;
+        }
+
+        function setCustomActive(button, active) {
+          if (!button) return;
+          button.style.backgroundColor = active ? 'var(--primary)' : 'transparent';
+          button.style.color = active ? '#ffffff' : 'var(--text-main)';
+        }
+
+        function closeExtension() {
+          activeView = null;
+          const app = reactMain && reactMain.parentElement;
+          if (app) app.classList.remove('dolphi-custom-view-active');
+          if (extensionMain) extensionMain.style.display = 'none';
+          if (reactMain) reactMain.style.display = '';
+          setCustomActive(dashboardButton, false);
+          setCustomActive(settingsButton, false);
+        }
+
+        function openExtension(view) {
+          activeView = view;
+          const app = reactMain && reactMain.parentElement;
+          if (app) app.classList.add('dolphi-custom-view-active');
+          const nav = dashboardButton && dashboardButton.closest('nav');
+          if (nav) {
+            nav.querySelectorAll('button:not([data-dolphi-dashboard])').forEach(button => {
+              button.style.backgroundColor = 'transparent';
+              button.style.color = 'var(--text-main)';
+            });
+          }
+          if (reactMain) reactMain.style.display = 'none';
+          if (extensionMain) extensionMain.style.display = 'block';
+          setCustomActive(dashboardButton, view === 'dashboard');
+          setCustomActive(settingsButton, view === 'settings');
+          if (view === 'dashboard') renderDashboard();
+          if (view === 'settings') renderSettings();
+        }
+
+        function normalizedText(value) {
+          return String(value || '').trim().toUpperCase();
+        }
+
+        function findVisibleButton(text) {
+          const target = normalizedText(text);
+          const button = Array.from(document.querySelectorAll('button')).find(button => {
+            return button.offsetParent !== null && normalizedText(button.textContent) === target;
+          });
+          if (button) return button;
+          const span = Array.from(document.querySelectorAll('span')).find(span => {
+            return span.offsetParent !== null && normalizedText(span.textContent) === target;
+          });
+          if (span) return span;
+          return Array.from(document.querySelectorAll('div')).find(div => {
+            return div.offsetParent !== null && div.childElementCount === 0 && normalizedText(div.textContent) === target;
+          });
+        }
+
+        function processPendingDeviceNavigation(attempt) {
+          if (!pendingDeviceNavigation || attempt > 40) {
+            pendingDeviceNavigation = null;
+            return;
+          }
+          const item = pendingDeviceNavigation;
+          const loadedQuery = window.DolphiSICLastDeviceQuery || {};
+          const targetLoaded = normalizedText(loadedQuery.cis) === normalizedText(item.cis) &&
+            normalizedText(loadedQuery.type) === normalizedText(item.type);
+          if (item._typeClicked && targetLoaded) {
+            const rows = Array.from(document.querySelectorAll('main table tbody tr'));
+            const targetRow = rows.find(row => normalizedText(row.textContent).includes(normalizedText(item.num_serie)));
+            if (targetRow) {
+              targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              targetRow.classList.add('dolphi-row-highlight');
+              setTimeout(() => targetRow.classList.remove('dolphi-row-highlight'), 2600);
+              pendingDeviceNavigation = null;
+              return;
+            }
+          }
+
+          if (!item._cisClicked) {
+            const cisButton = findVisibleButton(item.cis);
+            if (cisButton) {
+              item._cisClicked = true;
+              cisButton.click();
+            }
+          } else if (!item._typeClicked && item.type) {
+            const currentCentreVisible = Array.from(document.querySelectorAll('main h1')).some(heading =>
+              heading.offsetParent !== null && normalizedText(heading.textContent) === normalizedText(item.cis)
+            );
+            if (!currentCentreVisible) {
+              setTimeout(() => processPendingDeviceNavigation(attempt + 1), 150);
+              return;
+            }
+            const typeLabels = {
+              BIP: 'Bips Pager',
+              PORTATIF: 'Portatifs',
+              MOBILE: 'Mobiles Véhicule',
+              INFRA: 'Infrastructures',
+              ALERTE: 'Alerte Centrale'
+            };
+            const typeButton = findVisibleButton(typeLabels[normalizedText(item.type)] || item.type);
+            if (typeButton) {
+              item._typeClicked = true;
+              typeButton.click();
+            }
+          }
+          setTimeout(() => processPendingDeviceNavigation(attempt + 1), 150);
+        }
+
+        function navigateToDevice(item) {
+          pendingDeviceNavigation = { ...item };
+          closeExtension();
+          const standardButton = Array.from(document.querySelectorAll('nav button')).find(button =>
+            button.textContent.includes('Vue Standard')
+          );
+          if (standardButton) standardButton.click();
+          try {
+            if (window.parent && typeof window.parent.onLegacyViewChanged === 'function') {
+              window.parent.onLegacyViewChanged('standard');
+            }
+          } catch (error) {
+            console.warn('Impossible de synchroniser la navigation parente.', error);
+          }
+          setTimeout(() => processPendingDeviceNavigation(0), 100);
+        }
+
+        function operationRow(item, label, upcoming) {
+          const row = document.createElement('div');
+          row.className = 'dolphi-operation-row';
+
+          const main = document.createElement('div');
+          main.className = 'dolphi-operation-main';
+          if (item.id && item.cis && item.num_serie && item.type) {
+            const goButton = document.createElement('button');
+            goButton.type = 'button';
+            goButton.className = 'dolphi-goto-device';
+            goButton.title = 'Voir dans le parc';
+            goButton.textContent = '→';
+            goButton.addEventListener('click', () => navigateToDevice(item));
+            main.appendChild(goButton);
+          }
+          const identity = document.createElement('div');
+          const title = document.createElement('strong');
+          title.textContent = item.num_serie || item.nom || item.modele || 'Matériel';
+          const detail = document.createElement('small');
+          detail.textContent = [item.modele, item.cis, item.emprunteur].filter(Boolean).join(' · ');
+          identity.append(title, detail);
+          main.appendChild(identity);
+
+          const delay = document.createElement('div');
+          delay.className = 'dolphi-operation-delay';
+          const value = upcoming ? item.days_remaining : item.days_overdue;
+          delay.innerHTML = '<strong>' + escapeHtml(value) + ' j</strong><small>' + escapeHtml(label) + '</small>';
+          row.append(main, delay);
+          return row;
+        }
+
+        function fillOperationList(id, items, label, upcoming) {
+          const list = extensionMain.querySelector('#' + id);
+          list.innerHTML = '';
+          if (!items.length) {
+            const empty = document.createElement('div');
+            empty.className = 'dolphi-empty';
+            empty.textContent = 'Aucune opération dans cette catégorie.';
+            list.appendChild(empty);
+            return;
+          }
+          items.forEach(item => list.appendChild(operationRow(item, label, upcoming)));
+        }
+
+        function parseDashboardDate(value) {
+          if (!value) return null;
+          const raw = String(value).trim().split(' ')[0];
+          let match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+          if (match) return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+          match = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+          if (!match) return null;
+          let year = Number(match[3]);
+          if (year < 100) year += year < 70 ? 2000 : 1900;
+          return new Date(year, Number(match[1]) - 1, Number(match[2]));
+        }
+
+        async function buildDashboardFallback() {
+          const [devices, stock] = await Promise.all([
+            fetchJson('/api/search', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({})
+            }),
+            fetchJson('/api/stock')
+          ]);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const oneDay = 86400000;
+          const overdueCryptage = [];
+          const approachingCryptage = [];
+          devices.filter(item => String(item.cis || '').trim().toUpperCase() !== 'TEST').forEach(item => {
+            const dueDate = parseDashboardDate(item.date_cle_a_faire);
+            if (!dueDate) return;
+            const days = Math.round((dueDate - today) / oneDay);
+            if (days < 0) overdueCryptage.push({ ...item, days_overdue: Math.abs(days) });
+            else if (days <= 30) approachingCryptage.push({ ...item, days_remaining: days });
+          });
+          const overdueLoans = stock
+            .filter(item => String(item.cis || '').trim().toUpperCase() !== 'TEST' && item.active_pret_id)
+            .map(item => {
+              const dueDate = parseDashboardDate(item.date_fin);
+              return dueDate && dueDate < today
+                ? { ...item, days_overdue: Math.round((today - dueDate) / oneDay) }
+                : null;
+            })
+            .filter(Boolean);
+          overdueCryptage.sort((a, b) => b.days_overdue - a.days_overdue);
+          approachingCryptage.sort((a, b) => a.days_remaining - b.days_remaining);
+          overdueLoans.sort((a, b) => b.days_overdue - a.days_overdue);
+          return {
+            summary: {
+              overdue_cryptage: overdueCryptage.length,
+              approaching_cryptage: approachingCryptage.length,
+              overdue_loans: overdueLoans.length,
+              total_urgent: overdueCryptage.length + overdueLoans.length
+            },
+            overdue_cryptage: overdueCryptage,
+            approaching_cryptage: approachingCryptage,
+            overdue_loans: overdueLoans
+          };
+        }
+
+        async function loadDashboard() {
+          const feedback = extensionMain.querySelector('#dolphi-dashboard-feedback');
+          feedback.className = 'dolphi-feedback';
+          feedback.textContent = 'Chargement des opérations...';
+          try {
+            let data;
+            try {
+              data = await fetchJson('/api/dashboard/urgent');
+            } catch (error) {
+              data = await buildDashboardFallback();
+            }
+            dashboardData = data;
+            updateDashboardFilter();
+            feedback.remove();
+          } catch (error) {
+            feedback.className = 'dolphi-feedback error';
+            feedback.textContent = error.message;
+          }
+        }
+
+        function updateDashboardFilter() {
+          if (!dashboardData || !extensionMain) return;
+          const summary = dashboardData.summary || {};
+          const filters = {
+            overdue_cryptage: {
+              title: 'Cryptages dépassés',
+              count: summary.overdue_cryptage || 0,
+              items: dashboardData.overdue_cryptage || [],
+              label: 'de retard',
+              upcoming: false
+            },
+            approaching_cryptage: {
+              title: 'Cryptages sous 30 jours',
+              count: summary.approaching_cryptage || 0,
+              items: dashboardData.approaching_cryptage || [],
+              label: 'restants',
+              upcoming: true
+            },
+            overdue_loans: {
+              title: 'Prêts en retard',
+              count: summary.overdue_loans || 0,
+              items: dashboardData.overdue_loans || [],
+              label: 'de retard',
+              upcoming: false
+            }
+          };
+          const selected = filters[dashboardFilter] || filters.overdue_cryptage;
+          extensionMain.querySelector('#cryptage-count').textContent = filters.overdue_cryptage.count;
+          extensionMain.querySelector('#approaching-count').textContent = filters.approaching_cryptage.count;
+          extensionMain.querySelector('#loan-count').textContent = filters.overdue_loans.count;
+          extensionMain.querySelector('#dashboard-filter-title').textContent = selected.title;
+          extensionMain.querySelector('#dashboard-filter-badge').textContent = selected.count;
+          extensionMain.querySelectorAll('[data-dashboard-filter]').forEach(button => {
+            button.classList.toggle('active', button.dataset.dashboardFilter === dashboardFilter);
+          });
+          fillOperationList('dashboard-filter-list', selected.items, selected.label, selected.upcoming);
+        }
+
+        function renderDashboard() {
+          extensionMain.innerHTML = `
+            <div class="dolphi-extension-header">
+              <div>
+                <h1>Tableau de bord</h1>
+                <p>Opérations prioritaires du parc réel. Le CIS TEST est exclu.</p>
+              </div>
+              <button id="dolphi-refresh-dashboard" class="btn btn-outline">Actualiser</button>
+            </div>
+            <div id="dolphi-dashboard-feedback" class="dolphi-feedback">Chargement des opérations...</div>
+            <div class="dolphi-summary-grid">
+              <button type="button" class="dolphi-summary-card active" data-dashboard-filter="overdue_cryptage"><span>Cryptages dépassés</span><strong id="cryptage-count">0</strong></button>
+              <button type="button" class="dolphi-summary-card" data-dashboard-filter="approaching_cryptage"><span>Sous 30 jours</span><strong id="approaching-count">0</strong></button>
+              <button type="button" class="dolphi-summary-card" data-dashboard-filter="overdue_loans"><span>Prêts en retard</span><strong id="loan-count">0</strong></button>
+            </div>
+            <section class="dolphi-section">
+              <div class="dolphi-section-heading"><h2 id="dashboard-filter-title">Cryptages dépassés</h2><span id="dashboard-filter-badge" class="badge">0</span></div>
+              <div id="dashboard-filter-list" class="dolphi-operation-list"></div>
+            </section>`;
+          extensionMain.querySelector('#dolphi-refresh-dashboard').addEventListener('click', loadDashboard);
+          extensionMain.querySelectorAll('[data-dashboard-filter]').forEach(button => {
+            button.addEventListener('click', () => {
+              dashboardFilter = button.dataset.dashboardFilter;
+              updateDashboardFilter();
+            });
+          });
+          loadDashboard();
+        }
+
+        function settingsPayload(form) {
+          return { email_notif: form.elements.email_notif.value.trim() };
+        }
+
+        function showSettingsFeedback(message, error) {
+          const feedback = extensionMain.querySelector('#dolphi-settings-feedback');
+          feedback.hidden = false;
+          feedback.className = 'dolphi-feedback ' + (error ? 'error' : 'success');
+          feedback.textContent = message;
+        }
+
+        async function saveSettings() {
+          const form = extensionMain.querySelector('#dolphi-settings-form');
+          const result = await fetchJson('/api/notifications/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(settingsPayload(form))
+          });
+          showSettingsFeedback('Adresse email enregistrée.', false);
+          return result;
+        }
+
+        async function sendConfiguredEmail() {
+          try {
+            await saveSettings();
+            const email = extensionMain.querySelector('#email_notif').value.trim();
+            const result = await fetchJson('/api/notifications/send', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email })
+            });
+            showSettingsFeedback(result.message, false);
+          } catch (error) {
+            showSettingsFeedback(error.message, true);
+          }
+        }
+
+        async function loadSettings() {
+          try {
+            const settings = await fetchJson('/api/notifications/settings');
+            const form = extensionMain.querySelector('#dolphi-settings-form');
+            form.elements.email_notif.value = settings.email_notif || '';
+          } catch (error) {
+            showSettingsFeedback(error.message, true);
+          }
+        }
+
+        function renderSettings() {
+          const originalThemeButton = document.querySelector('button[title="Changer le thème"]');
+          const darkMode = !document.documentElement.classList.contains('light');
+          extensionMain.innerHTML = `
+            <form id="dolphi-settings-form">
+              <div class="dolphi-extension-header">
+                <div><h1>Paramètres</h1><p>Apparence et adresse email destinataire.</p></div>
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+              </div>
+              <div id="dolphi-settings-feedback" class="dolphi-feedback" hidden></div>
+              <section class="dolphi-section">
+                <h2>Apparence</h2>
+                <div class="dolphi-setting-row">
+                  <div><strong>Thème de l'interface</strong><div class="dolphi-muted">${darkMode ? 'Mode sombre actif' : 'Mode clair actif'}</div></div>
+                  <button id="dolphi-theme-toggle" type="button" class="btn btn-outline">${darkMode ? 'Passer au clair' : 'Passer au sombre'}</button>
+                </div>
+              </section>
+              <section class="dolphi-section">
+                <h2>Email</h2>
+                <label class="dolphi-field" style="max-width:520px">Adresse destinataire
+                  <input id="email_notif" name="email_notif" type="email" placeholder="service@sdis04.fr">
+                </label>
+                <button id="dolphi-send-email" type="button" class="btn btn-outline" style="margin-top:16px">Envoyer un email</button>
+              </section>
+            </form>`;
+
+          const form = extensionMain.querySelector('#dolphi-settings-form');
+          form.addEventListener('submit', event => {
+            event.preventDefault();
+            saveSettings().catch(error => showSettingsFeedback(error.message, true));
+          });
+          extensionMain.querySelector('#dolphi-theme-toggle').addEventListener('click', () => {
+            if (originalThemeButton) originalThemeButton.click();
+            renderSettings();
+          });
+          extensionMain.querySelector('#dolphi-send-email').addEventListener('click', sendConfiguredEmail);
+          loadSettings();
+        }
+
+        function updateAdvancedSearchFields() {
+          document.querySelectorAll('label').forEach(label => {
+            const text = label.textContent.trim();
+            const input = label.parentElement && label.parentElement.querySelector('input');
+            if (!input) return;
+            if (text === 'Version Logiciel') {
+              label.textContent = 'POCSAG';
+              input.placeholder = 'Rechercher par POCSAG';
+            } else if (text === 'Observation') {
+              label.textContent = 'RFGI';
+              input.placeholder = 'Rechercher par RFGI';
+            }
+          });
+        }
+
+        function hideSiteInfoTab() {
+          document.querySelectorAll('button').forEach(button => {
+            if (button.textContent.trim() !== 'Infos') return;
+            const tabs = button.parentElement;
+            const tabText = tabs ? tabs.textContent : '';
+            if (tabText.includes('Pylônes') && tabText.includes('Tâches')) {
+              button.style.display = 'none';
+            }
+          });
+        }
+
+        function updateBulkToolbar() {
+          const toolbar = document.querySelector('[data-dolphi-bulk-toolbar]');
+          if (!toolbar) return;
+          const count = selectedDeviceIds.size;
+          toolbar.querySelector('[data-bulk-count]').textContent = count + ' sélectionné' + (count > 1 ? 's' : '');
+          toolbar.querySelectorAll('button').forEach(button => { button.disabled = count === 0; });
+          document.querySelectorAll('[data-device-select]').forEach(input => {
+            input.checked = selectedDeviceIds.has(Number(input.dataset.deviceSelect));
+          });
+        }
+
+        function refreshStandardView() {
+          selectedDeviceIds.clear();
+          const navButtons = Array.from(document.querySelectorAll('nav button'));
+          const searchButton = navButtons.find(button => button.textContent.includes('Recherche Avancée'));
+          const standardButton = navButtons.find(button => button.textContent.includes('Vue Standard'));
+          if (searchButton && standardButton) {
+            searchButton.click();
+            setTimeout(() => standardButton.click(), 80);
+          }
+        }
+
+        function openBulkCryptageModal() {
+          const ids = Array.from(selectedDeviceIds);
+          if (!ids.length) return;
+          const overlay = document.createElement('div');
+          overlay.className = 'dolphi-modal-overlay';
+          overlay.innerHTML = `
+            <form class="dolphi-modal">
+              <h2 style="margin:0 0 8px">Mettre à jour le cryptage</h2>
+              <p class="dolphi-muted" style="margin-bottom:18px">${ids.length} équipement${ids.length > 1 ? 's' : ''} sélectionné${ids.length > 1 ? 's' : ''}.</p>
+              <label class="dolphi-field">Date de mise à jour
+                <input name="date_maj_cle" type="date" required>
+              </label>
+              <div class="dolphi-modal-actions">
+                <button type="button" class="btn btn-outline" data-cancel>Annuler</button>
+                <button type="submit" class="btn btn-primary">Mettre à jour</button>
+              </div>
+            </form>`;
+          overlay.querySelector('[data-cancel]').addEventListener('click', () => overlay.remove());
+          overlay.addEventListener('click', event => {
+            if (event.target === overlay) overlay.remove();
+          });
+          overlay.querySelector('form').addEventListener('submit', async event => {
+            event.preventDefault();
+            const submit = event.currentTarget.querySelector('[type="submit"]');
+            submit.disabled = true;
+            try {
+              await fetchJson('/api/devices/bulk-update-cryptage', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids, date_maj_cle: event.currentTarget.elements.date_maj_cle.value })
+              });
+              overlay.remove();
+              refreshStandardView();
+            } catch (error) {
+              submit.disabled = false;
+              alert(error.message);
+            }
+          });
+          document.body.appendChild(overlay);
+        }
+
+        async function bulkDeleteDevices() {
+          const ids = Array.from(selectedDeviceIds);
+          if (!ids.length) return;
+          if (!window.confirm('Supprimer définitivement ' + ids.length + ' équipement' + (ids.length > 1 ? 's' : '') + ' ?')) return;
+          try {
+            await fetchJson('/api/devices/bulk-delete', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ids })
+            });
+            refreshStandardView();
+          } catch (error) {
+            alert(error.message);
+          }
+        }
+
+        function installBulkSelection() {
+          const devices = Array.isArray(window.DolphiSICLastDevices) ? window.DolphiSICLastDevices : [];
+          if (!devices.length) return;
+          const devicesBySerial = new Map(devices.map(device => [normalizedText(device.num_serie), device]));
+          const validIds = new Set(devices.map(device => Number(device.id)));
+          Array.from(selectedDeviceIds).forEach(id => {
+            if (!validIds.has(id)) selectedDeviceIds.delete(id);
+          });
+
+          const eligibleTables = Array.from(document.querySelectorAll('main table')).filter(table => {
+            const headers = Array.from(table.querySelectorAll('thead th'));
+            return (headers[0] && headers[0].textContent.trim() === 'N° Série') ||
+              (headers[0] && headers[0].querySelector('[data-select-all]') && headers[1] && headers[1].textContent.trim() === 'N° Série');
+          });
+          if (!eligibleTables.length) return;
+
+          eligibleTables.forEach(table => {
+            const headerRow = table.querySelector('thead tr');
+            if (headerRow && !headerRow.querySelector('[data-select-all]')) {
+              const header = document.createElement('th');
+              header.className = 'dolphi-select-cell';
+              const selectAll = document.createElement('input');
+              selectAll.type = 'checkbox';
+              selectAll.dataset.selectAll = '1';
+              selectAll.title = 'Tout sélectionner dans ce tableau';
+              selectAll.addEventListener('change', () => {
+                table.querySelectorAll('[data-device-select]').forEach(input => {
+                  const id = Number(input.dataset.deviceSelect);
+                  if (selectAll.checked) selectedDeviceIds.add(id);
+                  else selectedDeviceIds.delete(id);
+                });
+                updateBulkToolbar();
+              });
+              header.appendChild(selectAll);
+              headerRow.insertBefore(header, headerRow.firstChild);
+            }
+
+            table.querySelectorAll('tbody tr').forEach(row => {
+              let cell = row.querySelector('[data-dolphi-select-cell]');
+              if (!cell) {
+                cell = document.createElement('td');
+                cell.className = 'dolphi-select-cell';
+                cell.dataset.dolphiSelectCell = '1';
+                row.insertBefore(cell, row.firstChild);
+              }
+              if (cell.querySelector('[data-device-select]')) return;
+              const serialCell = row.querySelector('td:not([data-dolphi-select-cell])');
+              const device = serialCell && devicesBySerial.get(normalizedText(serialCell.textContent));
+              if (!device) return;
+              const checkbox = document.createElement('input');
+              checkbox.type = 'checkbox';
+              checkbox.dataset.deviceSelect = String(device.id);
+              checkbox.checked = selectedDeviceIds.has(Number(device.id));
+              checkbox.title = 'Sélectionner ' + (device.num_serie || 'cet équipement');
+              checkbox.addEventListener('change', () => {
+                if (checkbox.checked) selectedDeviceIds.add(Number(device.id));
+                else selectedDeviceIds.delete(Number(device.id));
+                updateBulkToolbar();
+              });
+              cell.appendChild(checkbox);
+            });
+          });
+
+          if (!document.querySelector('[data-dolphi-bulk-toolbar]')) {
+            const firstContainer = eligibleTables[0].closest('.table-container');
+            if (firstContainer) {
+              const toolbar = document.createElement('div');
+              toolbar.className = 'dolphi-bulk-toolbar';
+              toolbar.dataset.dolphiBulkToolbar = '1';
+              toolbar.innerHTML = `
+                <strong data-bulk-count>0 sélectionné</strong>
+                <div class="dolphi-bulk-actions">
+                  <button type="button" class="btn btn-outline" data-bulk-cryptage disabled>Mettre à jour le cryptage</button>
+                  <button type="button" class="btn btn-outline" data-bulk-delete disabled style="color:var(--primary)">Supprimer</button>
+                </div>`;
+              toolbar.querySelector('[data-bulk-cryptage]').addEventListener('click', openBulkCryptageModal);
+              toolbar.querySelector('[data-bulk-delete]').addEventListener('click', bulkDeleteDevices);
+              firstContainer.parentElement.insertBefore(toolbar, firstContainer);
+            }
+          }
+          updateBulkToolbar();
+        }
+
+        function installEnhancements() {
+          const app = document.querySelector('#root > div');
+          if (!app) return;
+          const sidebar = app.querySelector(':scope > div.glass');
+          const nav = sidebar && sidebar.querySelector('nav');
+          const footer = sidebar && nav && nav.nextElementSibling;
+          const main = app.querySelector(':scope > main');
+          if (!sidebar || !nav || !footer || !main) return;
+          reactMain = main;
+
+          if (!extensionMain || !extensionMain.isConnected) {
+            extensionMain = document.createElement('main');
+            extensionMain.className = 'dolphi-extension-main';
+            extensionMain.style.display = 'none';
+            app.appendChild(extensionMain);
+          }
+
+          nav.querySelectorAll('button:not([data-dolphi-dashboard])').forEach(button => {
+            if (button.dataset.dolphiExtensionBound) return;
+            button.dataset.dolphiExtensionBound = '1';
+            button.addEventListener('click', () => {
+              closeExtension();
+              nav.querySelectorAll('button:not([data-dolphi-dashboard])').forEach(other => {
+                other.style.backgroundColor = 'transparent';
+                other.style.color = 'var(--text-main)';
+              });
+              button.style.backgroundColor = 'var(--primary)';
+              button.style.color = '#ffffff';
+            });
+          });
+
+          dashboardButton = nav.querySelector('[data-dolphi-dashboard]');
+          if (!dashboardButton) {
+            const source = Array.from(nav.querySelectorAll('button')).find(button => button.textContent.includes('Statistiques')) || nav.querySelector('button');
+            dashboardButton = source.cloneNode(true);
+            dashboardButton.dataset.dolphiDashboard = '1';
+            const label = dashboardButton.querySelector('span');
+            if (label) label.textContent = 'Tableau de bord';
+            dashboardButton.title = 'Tableau de bord';
+            dashboardButton.addEventListener('click', () => openExtension('dashboard'));
+            nav.insertBefore(dashboardButton, nav.firstChild);
+          }
+
+          settingsButton = footer.querySelector('[data-dolphi-settings]');
+          if (!settingsButton) {
+            const themeButton = footer.querySelector('button[title="Changer le thème"]');
+            const logoutButton = footer.querySelector('button[title="Se déconnecter"]');
+            if (themeButton) {
+              settingsButton = themeButton.cloneNode(true);
+              settingsButton.dataset.dolphiSettings = '1';
+              settingsButton.title = 'Paramètres';
+              const label = settingsButton.querySelector('span');
+              if (label) label.textContent = 'Paramètres';
+              settingsButton.addEventListener('click', () => openExtension('settings'));
+              footer.insertBefore(settingsButton, logoutButton || null);
+            }
+          }
+
+          let collapseButton = footer.querySelector('[data-dolphi-collapse]');
+          if (!collapseButton) {
+            collapseButton = document.createElement('button');
+            collapseButton.type = 'button';
+            collapseButton.className = 'dolphi-collapse-toggle';
+            collapseButton.dataset.dolphiCollapse = '1';
+            collapseButton.addEventListener('click', () => {
+              const collapsed = !sidebar.classList.contains('dolphi-sidebar-collapsed');
+              sidebar.classList.toggle('dolphi-sidebar-collapsed', collapsed);
+              localStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0');
+              collapseButton.textContent = collapsed ? '›' : '‹';
+              collapseButton.title = collapsed ? 'Déployer le menu' : 'Rétracter le menu';
+            });
+            footer.appendChild(collapseButton);
+          }
+
+          const collapsed = localStorage.getItem(COLLAPSE_KEY) === '1';
+          sidebar.classList.toggle('dolphi-sidebar-collapsed', collapsed);
+          const collapseSymbol = collapsed ? '›' : '‹';
+          if (collapseButton.textContent !== collapseSymbol) {
+            collapseButton.textContent = collapseSymbol;
+          }
+          collapseButton.title = collapsed ? 'Déployer le menu' : 'Rétracter le menu';
+          updateAdvancedSearchFields();
+          hideSiteInfoTab();
+
+          if (!app.dataset.dolphiDefaultDashboard) {
+            app.dataset.dolphiDefaultDashboard = '1';
+            openExtension('dashboard');
+          }
+        }
+
+                window.changeLegacyView = function(viewId) {
+          if (activeView === viewId) return;
+          if (viewId === 'dashboard') {
+            openExtension('dashboard');
+          } else if (viewId === 'settings') {
+            openExtension('settings');
+          } else {
+            closeExtension();
+            if (typeof window.setLegacyPage === 'function') {
+              window.setLegacyPage(viewId);
+            }
+          }
+        };
+
+        const observer = new MutationObserver(installEnhancements);
+        observer.observe(document.getElementById('root'), { childList: true, subtree: true });
+        window.addEventListener('dolphisic-devices-loaded', installBulkSelection);
+        installEnhancements();
       })();
     </script>
   </body>

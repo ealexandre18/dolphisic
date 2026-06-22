@@ -72,3 +72,28 @@ Le serveur a été lancé localement à des fins de test avec les résultats sui
 Le dossier principal `PROJET SDIS` est maintenant totalement autonome. Pour le transférer sur une autre machine :
 1. **Copiez/Collez** le dossier entier `PROJET SDIS/` sur le nouvel ordinateur.
 2. Sur la machine hôte, double-cliquez sur le fichier [start.bat](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/start.bat) pour démarrer l'application. Le script installera automatiquement les modules requis (`flask` et `flask-cors`) s'ils ne sont pas présents, démarrera le serveur, affichera l'adresse IP locale à utiliser sur le réseau, et ouvrira l'application dans votre navigateur.
+
+---
+
+## 🎨 Redesign DolphiSIC - Navigation et Centrage de la Barre
+
+Nous avons finalisé l'intégration du redesign en résolvant tous les points bloquants de navigation, de rendu et de conflit de port :
+
+### 1. Suppression Totale des Hashes (`#`) de l'URL
+- La navigation Next.js n'utilise plus de fragments de hash `#` dans la barre d'adresse. Elle est entièrement pilotée par un état React local (`activeTab`) dans [page.tsx](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/dolphisic_redesign/app/page.tsx).
+- Les clics sur les liens du menu sont interceptés et annulés (`preventDefault()`) pour conserver une URL propre de type `http://localhost:3005/`.
+
+### 2. Contrôleur de Navigation Unifié (`window.changeLegacyView`) dans l'IIFE de l'Iframe
+- Pour permettre d'accéder sans problème à toutes les pages (incluant la "Cartographie" et les onglets du sous-menu), nous avons injecté une fonction globale `window.changeLegacyView` à l'intérieur de la fermeture lexicale (IIFE) des fichiers HTML ([index.html](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/dolphisic_redesign/public/legacy/index.html) et [index.html](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/dist/index.html)).
+- Cette fonction centralise le basculement entre les extensions personnalisées (Dashboard, Settings) et les vues React de base de l'Iframe, s'assurant de masquer ou d'afficher correctement les panneaux correspondants via `openExtension` et `closeExtension` en fonction de la vue demandée.
+
+### 3. Résolution de Conflit de Port (Port 3005 par Défaut)
+- Pour éviter les blocages lorsque le port 3000 est déjà occupé, le port par défaut du serveur de développement Next.js a été configuré sur le port **3005** dans [package.json](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/dolphisic_redesign/package.json).
+- Le script lanceur [start-redesign.bat](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/dolphisic_redesign/start-redesign.bat) démarre et ouvre automatiquement le site sur le port 3005.
+
+### 4. Centrage du Menu de Navigation
+- Le bloc contenant le logo et le titre "DolphiSIC" est maintenant placé en position absolue à gauche (`absolute left-4`), libérant le flux horizontal pour centrer parfaitement la barre de menus au milieu du header.
+- La liste `<ul>` du composant de navigation dans [navbar.tsx](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/dolphisic_redesign/components/ui/navbar.tsx) a été complétée avec le style `justify-center` pour un alignement horizontal parfait.
+
+### 5. Correction de l'Animation de Soulignement Rouge (Framer Motion)
+- Suppression d'un doublon de clé `layoutId="cursor"` présent sur le conteneur du sous-menu déroulant (dropdown) dans [navbar.tsx](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/dolphisic_redesign/components/ui/navbar.tsx), qui interférait avec Framer Motion et bloquait le rendu du trait rouge lors du survol de l'onglet "Parc matériel".

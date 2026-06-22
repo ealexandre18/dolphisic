@@ -4,6 +4,7 @@ import sqlite3
 import hashlib
 import json
 import re
+import secrets
 import time
 from flask import Flask, request, jsonify, send_from_directory, g
 from flask_cors import CORS
@@ -25,6 +26,8 @@ class Colors:
 ANSI_RE = re.compile(r'\x1b\[[0-9;]*m')
 DEBUG_LOG_FILE = None
 SENSITIVE_KEYS = ('password', 'pass', 'mot_de_passe', 'token', 'secret', 'api_key', 'apikey')
+SESSION_COOKIE_NAME = 'dolphisic_session'
+SESSION_COOKIE_MAX_AGE = 60 * 60 * 12
 
 
 def strip_ansi(value):
@@ -109,6 +112,13 @@ CORS(app)
 BASE_DIR = SERVER_DIR
 SETTINGS_FILE = os.path.join(BASE_DIR, "notification_settings.json")
 
+DEFAULT_NOTIFICATION_SETTINGS = {
+    "global_notification_enabled": False,
+    "notify_exceeded": True,
+    "notify_approaching": True,
+    "email_notif": ""
+}
+
 # Path to the compiled React frontend
 DIST_DIR = os.path.join(SERVER_DIR, 'dist')
 
@@ -184,6 +194,47 @@ def init_db():
             cur.execute(f"ALTER TABLE stock ADD COLUMN {col} TEXT")
         except sqlite3.OperationalError:
             pass
+
+    # Dedicated demonstration centre. Data remains visible in inventory/search,
+    # but aggregate and operational endpoints explicitly exclude it.
+    centre_columns = {row[1] for row in cur.execute("PRAGMA table_info(centres)").fetchall()}
+    if 'cis' in centre_columns:
+        if 'comptage' in centre_columns:
+            cur.execute("""
+                INSERT INTO centres (cis, comptage)
+                SELECT 'TEST', '0'
+                WHERE NOT EXISTS (SELECT 1 FROM centres WHERE UPPER(TRIM(cis)) = 'TEST')
+            """)
+        else:
+            cur.execute("""
+                INSERT INTO centres (cis)
+                SELECT 'TEST'
+                WHERE NOT EXISTS (SELECT 1 FROM centres WHERE UPPER(TRIM(cis)) = 'TEST')
+            """)
+
+    test_devices = [
+        ('TEST-CRYPT-001', 'TPH700', '2022-01-10', '2024-01-10'),
+        ('TEST-CRYPT-002', 'TPH700', '2022-02-14', '2024-02-14'),
+        ('TEST-CRYPT-003', 'TPH700', '2022-03-18', '2024-03-18'),
+        ('TEST-CRYPT-004', 'TPH700', '2022-04-22', '2024-04-22'),
+        ('TEST-CRYPT-005', 'TPH700', '2022-05-26', '2024-05-26'),
+        ('TEST-CRYPT-006', 'TPH700', '2022-06-30', '2024-06-30'),
+        ('TEST-CRYPT-007', 'TPH700', '2022-07-04', '2024-07-04'),
+        ('TEST-CRYPT-008', 'TPH700', '2022-08-08', '2024-08-08'),
+        ('TEST-CRYPT-009', 'TPH700', '2022-09-12', '2024-09-12'),
+        ('TEST-CRYPT-010', 'TPH700', '2022-10-16', '2024-10-16'),
+    ]
+    for serial, model, last_key_date, next_key_date in test_devices:
+        cur.execute("""
+            INSERT INTO parc
+                (cis, modele, num_serie, affectation, version_logiciel,
+                 observation, date_maj_cle, date_cle_a_faire, date_prog)
+            SELECT 'TEST', ?, ?, 'APPAREIL TEST', 'TEST',
+                   'Donnée de démonstration isolée', ?, ?, ?
+            WHERE NOT EXISTS (
+                SELECT 1 FROM parc WHERE UPPER(TRIM(num_serie)) = UPPER(TRIM(?))
+            )
+        """, (model, serial, last_key_date, next_key_date, last_key_date, serial))
     conn.commit()
     conn.close()
 
@@ -234,6 +285,106 @@ def query_db(db_path, query, args=(), one=False, commit=False):
         conn.close()
         log_db(f"{Colors.RED}ERROR{Colors.RESET} on {db_name}: {str(e)}")
         raise e
+
+
+def load_notification_settings():
+    settings = dict(DEFAULT_NOTIFICATION_SETTINGS)
+    if os.path.exists(SETTINGS_FILE):
+        try:
+            with open(SETTINGS_FILE, 'r', encoding='utf-8') as settings_file:
+                saved = json.load(settings_file)
+            if isinstance(saved, dict):
+                settings.update({key: saved[key] for key in settings if key in saved})
+        except Exception as exc:
+            log_logic(f"Unable to read notification settings: {exc}")
+
+    return settings
+
+
+def save_notification_settings(data):
+    current = load_notification_settings()
+    allowed_keys = set(DEFAULT_NOTIFICATION_SETTINGS)
+    for key, value in data.items():
+        if key in allowed_keys:
+            current[key] = value
+
+    with open(SETTINGS_FILE, 'w', encoding='utf-8') as settings_file:
+        json.dump(current, settings_file, indent=4, ensure_ascii=False)
+    return current
+
+
+def parse_date_value(value):
+    if not value:
+        return None
+    raw_value = str(value).strip().split(' ')[0]
+    for date_format in ('%Y-%m-%d', '%m/%d/%y', '%m/%d/%Y', '%d/%m/%Y', '%d/%m/%y'):
+        try:
+            return datetime.strptime(raw_value, date_format).date()
+        except ValueError:
+            continue
+    return None
+
+
+def collect_urgent_operations():
+    today = datetime.now().date()
+    equipment_rows = query_db(DB_SDIS, """
+        SELECT p.rowid AS id, p.num_serie, p.modele, p.cis, p.affectation,
+               p.date_maj_cle, p.date_cle_a_faire, m.type
+        FROM parc p
+        LEFT JOIN materiel m ON TRIM(p.modele) = TRIM(m.modele)
+        WHERE UPPER(TRIM(COALESCE(p.cis, ''))) != 'TEST'
+          AND p.date_cle_a_faire IS NOT NULL
+          AND TRIM(p.date_cle_a_faire) != ''
+    """)
+
+    overdue_cryptage = []
+    approaching_cryptage = []
+    for row in equipment_rows:
+        item = dict(row)
+        due_date = parse_date_value(item.get('date_cle_a_faire'))
+        if not due_date:
+            continue
+        delta_days = (due_date - today).days
+        item['days_delta'] = delta_days
+        if delta_days < 0:
+            item['days_overdue'] = abs(delta_days)
+            overdue_cryptage.append(item)
+        elif delta_days <= 30:
+            item['days_remaining'] = delta_days
+            approaching_cryptage.append(item)
+
+    loan_rows = query_db(DB_SDIS, """
+        SELECT p.id, p.stock_id, p.emprunteur, p.date_debut, p.date_fin,
+               s.nom, s.modele, s.num_serie, s.cis
+        FROM prets p
+        JOIN stock s ON s.id = p.stock_id
+        WHERE p.date_rendu IS NULL
+          AND UPPER(TRIM(COALESCE(s.cis, ''))) != 'TEST'
+    """)
+    overdue_loans = []
+    for row in loan_rows:
+        item = dict(row)
+        due_date = parse_date_value(item.get('date_fin'))
+        if due_date and due_date < today:
+            item['days_overdue'] = (today - due_date).days
+            overdue_loans.append(item)
+
+    overdue_cryptage.sort(key=lambda item: item['days_overdue'], reverse=True)
+    approaching_cryptage.sort(key=lambda item: item['days_remaining'])
+    overdue_loans.sort(key=lambda item: item['days_overdue'], reverse=True)
+    return {
+        'generated_at': datetime.now().isoformat(timespec='seconds'),
+        'summary': {
+            'overdue_cryptage': len(overdue_cryptage),
+            'approaching_cryptage': len(approaching_cryptage),
+            'overdue_loans': len(overdue_loans),
+            'total_urgent': len(overdue_cryptage) + len(overdue_loans)
+        },
+        'overdue_cryptage': overdue_cryptage,
+        'approaching_cryptage': approaching_cryptage,
+        'overdue_loans': overdue_loans
+    }
+
 
 # --- LOGGING SYSTEM MIDDLEWARES & ENDPOINT ---
 
@@ -300,6 +451,9 @@ def log_ui_event():
             name = details.get('name', '')
             label = details.get('label', '')
             val = details.get('value', '')
+            field_identity = f"{name} {label}".lower()
+            if any(sensitive in field_identity for sensitive in ('password', 'mot de passe', 'token', 'secret', 'clé', 'key')):
+                val = '********'
             log_ui(f"Toggle/Input '{Colors.BOLD}{label or name}{Colors.RESET}' changed to: {Colors.YELLOW}{val}{Colors.RESET} (Page: {path})")
             
         elif event_type == 'SUBMIT':
@@ -343,19 +497,40 @@ def login():
         if user_row and verify_hash(password, user_row['mot_de_passe']):
             role = user_row['role'] or 'USER'
             log_logic(f"User '{Colors.BOLD}{username}{Colors.RESET}' successfully logged in (Role: {Colors.YELLOW}{role}{Colors.RESET})")
-            return jsonify({
+            session_token = secrets.token_urlsafe(32)
+            response = jsonify({
                 'success': True,
                 'user': {
                     'username': username,
                     'role': role
                 },
-                'token': f"dummy-session-token-{username}"
+                'token': session_token
             })
+            if request.headers.get('X-DolphiSIC-Cookie-Consent') == 'accepted':
+                response.set_cookie(
+                    SESSION_COOKIE_NAME,
+                    session_token,
+                    max_age=SESSION_COOKIE_MAX_AGE,
+                    httponly=True,
+                    samesite='Lax',
+                    secure=request.is_secure
+                )
+                log_logic(f"Session cookie created for user: '{Colors.BOLD}{username}{Colors.RESET}'")
+            else:
+                log_logic(f"Session cookie skipped for user: '{Colors.BOLD}{username}{Colors.RESET}' (cookie consent not accepted)")
+            return response
         log_logic(f"User '{Colors.BOLD}{username}{Colors.RESET}' login FAILED (Invalid credentials)")
         return jsonify({'error': 'Identifiant ou mot de passe incorrect'}), 401
     except Exception as e:
         log_logic(f"User '{Colors.BOLD}{username}{Colors.RESET}' login FAILED (Database Error: {str(e)})")
         return jsonify({'error': f"Erreur de connexion base: {str(e)}"}), 500
+
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    response = jsonify({'success': True})
+    response.delete_cookie(SESSION_COOKIE_NAME, samesite='Lax')
+    log_logic("Session cookie cleared")
+    return response
 
 # --- INVENTORY & FLEET ---
 @app.route('/api/centres', methods=['GET'])
@@ -437,6 +612,75 @@ def delete_device(rowid):
         log_logic(f"Failed to delete Device ID={rowid}: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+
+def normalize_device_ids(raw_ids):
+    if not isinstance(raw_ids, list):
+        return []
+    normalized = []
+    for raw_id in raw_ids[:500]:
+        try:
+            device_id = int(raw_id)
+            if device_id > 0 and device_id not in normalized:
+                normalized.append(device_id)
+        except (TypeError, ValueError):
+            continue
+    return normalized
+
+
+@app.route('/api/devices/bulk-update-cryptage', methods=['POST'])
+def bulk_update_device_cryptage():
+    data = request.json or {}
+    device_ids = normalize_device_ids(data.get('ids'))
+    date_maj = data.get('date_maj_cle')
+    if not device_ids or not date_maj:
+        return jsonify({'error': 'Équipements et date de mise à jour requis'}), 400
+
+    date_a_faire = calculate_next_key_date(date_maj)
+    placeholders = ','.join('?' for _ in device_ids)
+    try:
+        query_db(
+            DB_SDIS,
+            f"""
+            UPDATE parc
+            SET date_maj_cle = ?, date_cle_a_faire = ?,
+                notification_active = 0, email_notif = NULL
+            WHERE rowid IN ({placeholders})
+            """,
+            (date_maj, date_a_faire, *device_ids),
+            commit=True
+        )
+        log_logic(f"Bulk cryptage update | Count={len(device_ids)} | Date={date_maj}")
+        return jsonify({
+            'success': True,
+            'updated': len(device_ids),
+            'date_cle_a_faire': date_a_faire
+        })
+    except Exception as e:
+        log_logic(f"Bulk cryptage update failed: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/devices/bulk-delete', methods=['POST'])
+def bulk_delete_devices():
+    data = request.json or {}
+    device_ids = normalize_device_ids(data.get('ids'))
+    if not device_ids:
+        return jsonify({'error': 'Aucun équipement sélectionné'}), 400
+
+    placeholders = ','.join('?' for _ in device_ids)
+    try:
+        query_db(
+            DB_SDIS,
+            f"DELETE FROM parc WHERE rowid IN ({placeholders})",
+            tuple(device_ids),
+            commit=True
+        )
+        log_logic(f"Bulk device deletion | Count={len(device_ids)}")
+        return jsonify({'success': True, 'deleted': len(device_ids)})
+    except Exception as e:
+        log_logic(f"Bulk device deletion failed: {e}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/modeles', methods=['GET'])
 def get_modeles_by_type():
     device_type = request.args.get('type')
@@ -492,28 +736,37 @@ def add_device():
 def handle_notification_settings():
     if request.method == 'GET':
         try:
-            if os.path.exists(SETTINGS_FILE):
-                with open(SETTINGS_FILE, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                return jsonify(data)
-            # Default fallback settings
-            return jsonify({
-                "global_notification_enabled": False,
-                "notify_exceeded": True,
-                "notify_approaching": True,
-                "email_notif": ""
-            })
+            return jsonify(load_notification_settings())
         except Exception as e:
             return jsonify({'error': str(e)}), 500
-    else: # POST
-        try:
-            data = request.json or {}
-            # Write to JSON file
-            with open(SETTINGS_FILE, 'w', encoding='utf-8') as f:
-                json.dump(data, f, indent=4)
-            return jsonify({'success': True, 'message': 'Paramètres de notification enregistrés'})
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
+
+    try:
+        data = redact_payload(request.json or {})
+        saved = save_notification_settings(request.json or {})
+        log_logic(f"Notification email setting updated: {data}")
+        return jsonify({
+            'success': True,
+            'message': 'Adresse email enregistrée',
+            'settings': saved
+        })
+    except (TypeError, ValueError) as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        log_logic(f"Failed to save notification settings: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/notifications/send', methods=['POST'])
+def send_notification_placeholder():
+    settings = load_notification_settings()
+    recipient = (request.json or {}).get('email') or settings.get('email_notif')
+    if not recipient:
+        return jsonify({'error': 'Adresse email destinataire requise'}), 400
+    log_logic(f"Email send requested for recipient: {recipient} (provider not configured)")
+    return jsonify({
+        'success': False,
+        'message': "Bouton prêt. Configuration d'envoi à compléter."
+    })
 
 @app.route('/api/devices/<int:rowid>/toggle-notification', methods=['POST'])
 def toggle_device_notification(rowid):
@@ -568,8 +821,8 @@ def advanced_search():
     device_type = data.get('type')
     num_serie = data.get('num_serie')
     affectation = data.get('affectation')
-    observation = data.get('observation')
-    version_logiciel = data.get('version_logiciel')
+    pocsag = data.get('pocsag') or data.get('code_pocsag')
+    rfgi = data.get('rfgi')
 
     query = """
         SELECT p.rowid as id, p.num_serie, p.modele, m.marque, p.affectation,
@@ -597,12 +850,12 @@ def advanced_search():
     if affectation:
         query += " AND p.affectation LIKE ?"
         params.append(f"%{affectation}%")
-    if observation:
-        query += " AND p.observation LIKE ?"
-        params.append(f"%{observation}%")
-    if version_logiciel:
-        query += " AND p.version_logiciel LIKE ?"
-        params.append(f"%{version_logiciel}%")
+    if pocsag:
+        query += " AND p.code_pocsag LIKE ?"
+        params.append(f"%{pocsag}%")
+    if rfgi:
+        query += " AND p.rfgi LIKE ?"
+        params.append(f"%{rfgi}%")
 
     try:
         rows = query_db(DB_SDIS, query, params)
@@ -612,8 +865,8 @@ def advanced_search():
             'type': device_type,
             'num_serie': num_serie,
             'affectation': affectation,
-            'observation': observation,
-            'version_logiciel': version_logiciel,
+            'pocsag': pocsag,
+            'rfgi': rfgi,
         }
         active_criteria = {k: v for k, v in criteria.items() if v}
         log_logic(f"Advanced search results | Criteria: {active_criteria or 'none'} | Count={len(rows)}")
@@ -622,6 +875,15 @@ def advanced_search():
         return jsonify({'error': str(e)}), 500
 
 # --- STATISTICS ---
+@app.route('/api/dashboard/urgent', methods=['GET'])
+def get_urgent_dashboard():
+    try:
+        return jsonify(collect_urgent_operations())
+    except Exception as e:
+        log_logic(f"Failed to load urgent dashboard: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
     try:
@@ -630,6 +892,7 @@ def get_stats():
             SELECT p.modele, COALESCE(m.type, 'INCONNU') as type, COUNT(*) as count
             FROM parc p
             LEFT JOIN materiel m ON TRIM(p.modele) = TRIM(m.modele)
+            WHERE UPPER(TRIM(COALESCE(p.cis, ''))) != 'TEST'
             GROUP BY p.modele, type
             ORDER BY count DESC
         """
@@ -641,6 +904,7 @@ def get_stats():
             FROM parc p
             LEFT JOIN materiel m ON TRIM(p.modele) = TRIM(m.modele)
             WHERE TRIM(m.type) IN ('BIP', 'MOBILE', 'PORTATIF')
+              AND UPPER(TRIM(COALESCE(p.cis, ''))) != 'TEST'
             GROUP BY TRIM(m.type)
             ORDER BY count DESC
         """
@@ -651,13 +915,18 @@ def get_stats():
             SELECT TRIM(p.cis) as cis, COUNT(*) as count
             FROM parc p
             WHERE p.cis IS NOT NULL AND TRIM(p.cis) != ''
+              AND UPPER(TRIM(p.cis)) != 'TEST'
             GROUP BY cis
             ORDER BY count DESC
         """
         rows_centres = query_db(DB_SDIS, query_centres)
         
         # Get total number of equipments in parc
-        total_row = query_db(DB_SDIS, "SELECT COUNT(*) as total FROM parc", one=True)
+        total_row = query_db(
+            DB_SDIS,
+            "SELECT COUNT(*) as total FROM parc WHERE UPPER(TRIM(COALESCE(cis, ''))) != 'TEST'",
+            one=True
+        )
         total_equipments = total_row['total'] if total_row else 0
         
         return jsonify({
@@ -1156,6 +1425,7 @@ def get_loan_history(item_id):
         return jsonify([dict(r) for r in rows])
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 # --- SERVE REACT FRONTEND ---
 @app.route('/', defaults={'path': ''})

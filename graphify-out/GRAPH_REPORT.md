@@ -1,16 +1,16 @@
-# Graph Report - PROJET SDIS  (2026-06-19)
+# Graph Report - PROJET SDIS  (2026-06-22)
 
 ## Corpus Check
-- 196 files · ~244,384 words
+- 262 files · ~344,428 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2978 nodes · 5976 edges · 227 communities (184 shown, 43 thin omitted)
-- Extraction: 85% EXTRACTED · 15% INFERRED · 0% AMBIGUOUS · INFERRED: 897 edges (avg confidence: 0.8)
+- 4850 nodes · 11641 edges · 304 communities (255 shown, 49 thin omitted)
+- Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 897 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `d90c8f71`
+- Built from commit: `384ddca3`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -115,10 +115,8 @@
 - [[_COMMUNITY_Community 108|Community 108]]
 - [[_COMMUNITY_Community 109|Community 109]]
 - [[_COMMUNITY_Community 110|Community 110]]
-- [[_COMMUNITY_Community 111|Community 111]]
 - [[_COMMUNITY_Community 112|Community 112]]
 - [[_COMMUNITY_Community 113|Community 113]]
-- [[_COMMUNITY_Community 114|Community 114]]
 - [[_COMMUNITY_Community 115|Community 115]]
 - [[_COMMUNITY_Community 116|Community 116]]
 - [[_COMMUNITY_Community 117|Community 117]]
@@ -168,8 +166,6 @@
 - [[_COMMUNITY_Community 172|Community 172]]
 - [[_COMMUNITY_Community 173|Community 173]]
 - [[_COMMUNITY_Community 174|Community 174]]
-- [[_COMMUNITY_Community 175|Community 175]]
-- [[_COMMUNITY_Community 176|Community 176]]
 - [[_COMMUNITY_Community 177|Community 177]]
 - [[_COMMUNITY_Community 178|Community 178]]
 - [[_COMMUNITY_Community 179|Community 179]]
@@ -193,19 +189,70 @@
 - [[_COMMUNITY_Community 197|Community 197]]
 - [[_COMMUNITY_Community 198|Community 198]]
 - [[_COMMUNITY_Community 199|Community 199]]
+- [[_COMMUNITY_Community 201|Community 201]]
+- [[_COMMUNITY_Community 202|Community 202]]
+- [[_COMMUNITY_Community 203|Community 203]]
 - [[_COMMUNITY_Community 204|Community 204]]
+- [[_COMMUNITY_Community 230|Community 230]]
+- [[_COMMUNITY_Community 231|Community 231]]
+- [[_COMMUNITY_Community 232|Community 232]]
+- [[_COMMUNITY_Community 233|Community 233]]
+- [[_COMMUNITY_Community 234|Community 234]]
+- [[_COMMUNITY_Community 235|Community 235]]
+- [[_COMMUNITY_Community 236|Community 236]]
+- [[_COMMUNITY_Community 237|Community 237]]
+- [[_COMMUNITY_Community 238|Community 238]]
+- [[_COMMUNITY_Community 239|Community 239]]
+- [[_COMMUNITY_Community 240|Community 240]]
+- [[_COMMUNITY_Community 241|Community 241]]
+- [[_COMMUNITY_Community 242|Community 242]]
+- [[_COMMUNITY_Community 243|Community 243]]
+- [[_COMMUNITY_Community 244|Community 244]]
+- [[_COMMUNITY_Community 245|Community 245]]
+- [[_COMMUNITY_Community 246|Community 246]]
+- [[_COMMUNITY_Community 247|Community 247]]
+- [[_COMMUNITY_Community 248|Community 248]]
+- [[_COMMUNITY_Community 249|Community 249]]
+- [[_COMMUNITY_Community 250|Community 250]]
+- [[_COMMUNITY_Community 251|Community 251]]
+- [[_COMMUNITY_Community 252|Community 252]]
+- [[_COMMUNITY_Community 253|Community 253]]
+- [[_COMMUNITY_Community 254|Community 254]]
+- [[_COMMUNITY_Community 255|Community 255]]
+- [[_COMMUNITY_Community 256|Community 256]]
+- [[_COMMUNITY_Community 257|Community 257]]
+- [[_COMMUNITY_Community 258|Community 258]]
+- [[_COMMUNITY_Community 259|Community 259]]
+- [[_COMMUNITY_Community 260|Community 260]]
+- [[_COMMUNITY_Community 261|Community 261]]
+- [[_COMMUNITY_Community 262|Community 262]]
+- [[_COMMUNITY_Community 263|Community 263]]
+- [[_COMMUNITY_Community 264|Community 264]]
+- [[_COMMUNITY_Community 265|Community 265]]
+- [[_COMMUNITY_Community 266|Community 266]]
+- [[_COMMUNITY_Community 267|Community 267]]
+- [[_COMMUNITY_Community 268|Community 268]]
+- [[_COMMUNITY_Community 269|Community 269]]
+- [[_COMMUNITY_Community 272|Community 272]]
+- [[_COMMUNITY_Community 276|Community 276]]
+- [[_COMMUNITY_Community 277|Community 277]]
+- [[_COMMUNITY_Community 278|Community 278]]
+- [[_COMMUNITY_Community 279|Community 279]]
+- [[_COMMUNITY_Community 281|Community 281]]
+- [[_COMMUNITY_Community 299|Community 299]]
+- [[_COMMUNITY_Community 300|Community 300]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `$()` - 750 edges
-2. `_update()` - 91 edges
-3. `i()` - 67 edges
-4. `dc()` - 55 edges
-5. `TailwindConfigGenerator` - 54 edges
-6. `draw()` - 48 edges
-7. `H()` - 42 edges
-8. `C()` - 41 edges
-9. `ku()` - 40 edges
-10. `query_db()` - 40 edges
+2. `$()` - 750 edges
+3. `$()` - 750 edges
+4. `_update()` - 91 edges
+5. `_update()` - 79 edges
+6. `_update()` - 79 edges
+7. `i()` - 67 edges
+8. `i()` - 65 edges
+9. `i()` - 65 edges
+10. `dc()` - 55 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `get_centres()` --references--> `sdis04 SQLite Database`  [INFERRED]
@@ -222,15 +269,15 @@
 ## Import Cycles
 - None detected.
 
-## Communities (227 total, 43 thin omitted)
+## Communities (304 total, 49 thin omitted)
 
 ### Community 0 - "V2 Server API Endpoints"
 Cohesion: 0.07
 Nodes (57): ASSETS_DIR, __dirname, initCommand(), InitOptions, templateInstall(), tryGitHubInstall(), removeSkillDir(), uninstallCommand() (+49 more)
 
 ### Community 1 - "Core Server API Endpoints"
-Cohesion: 0.05
-Nodes (70): carto_sdis04 SQLite Database, EQUIPEMENT_PARC Entity, Project Structure Flattening, sdis04 SQLite Database, SITES Entity, STOCK Entity, 1. Diagramme Entité-Association (Mermaid ERD), 2. Description des Associations et Cardinalités (+62 more)
+Cohesion: 0.12
+Nodes (37): add_label(), add_liaison(), add_main_courante(), add_or_update_site(), add_pylone(), add_stock_item(), advanced_search(), Colors (+29 more)
 
 ### Community 2 - "Server Site & Asset Operations"
 Cohesion: 0.05
@@ -246,15 +293,15 @@ Nodes (3): Data-Dense Dashboard Style, Real-Time / Operations Landing Pattern, D
 
 ### Community 5 - "Device Cryptography & Key Management"
 Cohesion: 0.11
-Nodes (19): $type, $value, background, foreground, muted-foreground, primary, primary-hover, secondary (+11 more)
+Nodes (19): $type, $value, background, destructive, foreground, muted-foreground, primary-hover, secondary (+11 more)
 
 ### Community 6 - "V2 Cryptography & Key Management"
 Cohesion: 0.20
 Nodes (12): $type, $value, bg, bg, padding, shadow, card, bg (+4 more)
 
 ### Community 7 - "Project Architecture & Structure"
-Cohesion: 0.03
-Nodes (91): $(), active(), addControllers(), addElements(), addPlugins(), addScales(), _animateOptions(), be() (+83 more)
+Cohesion: 0.02
+Nodes (172): $(), active(), addControllers(), addElements(), addPlugins(), addScales(), afterBuildTicks(), afterCalculateLabelRotation() (+164 more)
 
 ### Community 14 - "Server UI Logging"
 Cohesion: 0.05
@@ -593,8 +640,8 @@ Cohesion: 0.33
 Nodes (5): References (Knowledge Base), Routing, Slides, Subcommands, When to Use
 
 ### Community 105 - "Community 105"
-Cohesion: 0.60
-Nodes (5): sm, sm, sm, $type, $value
+Cohesion: 0.09
+Nodes (36): adjustHitBoxes(), afterDraw(), _computeTitleHeight(), cr(), cs(), draw(), drawBody(), _drawColorBox() (+28 more)
 
 ### Community 106 - "Community 106"
 Cohesion: 0.33
@@ -616,10 +663,6 @@ Nodes (4): format_output(), generate_design_brief(), Format results for Claude c
 Cohesion: 0.40
 Nodes (4): Brand Guidelines Template, Document Structure, Extractable Fields, Usage
 
-### Community 111 - "Community 111"
-Cohesion: 0.60
-Nodes (5): lg, $type, $value, lg, lg
-
 ### Community 112 - "Community 112"
 Cohesion: 0.40
 Nodes (5): Common Rules for Professional UI, Icons & Visual Elements, Interaction (App), Layout & Spacing, Light/Dark Mode Contrast
@@ -628,17 +671,13 @@ Nodes (5): Common Rules for Professional UI, Icons & Visual Elements, Interactio
 Cohesion: 0.40
 Nodes (5): Example Workflow, Step 1: Analyze Requirements, Step 2: Generate Design System (REQUIRED), Step 3: Supplement with Detailed Searches (as needed), Step 4: Stack Guidelines
 
-### Community 114 - "Community 114"
-Cohesion: 0.67
-Nodes (4): xl, xl, $type, $value
-
 ### Community 115 - "Community 115"
-Cohesion: 0.10
-Nodes (33): An(), average(), bn(), clear(), clearCache(), cr(), _dataCheck(), _destroy() (+25 more)
+Cohesion: 0.02
+Nodes (133): $(), aa(), addBox(), addControllers(), addElements(), addPlugins(), addScales(), afterAutoSkip() (+125 more)
 
 ### Community 116 - "Community 116"
-Cohesion: 0.25
-Nodes (22): bc(), bl(), cl(), fl(), il(), interpolate(), jp(), ku() (+14 more)
+Cohesion: 0.10
+Nodes (53): Al(), bc(), beforeLayout(), bl(), cl(), data(), dl(), el() (+45 more)
 
 ### Community 117 - "Community 117"
 Cohesion: 0.50
@@ -657,136 +696,308 @@ Cohesion: 0.20
 Nodes (10): fg, font-size, hover-bg, button, $type, $value, $type, $value (+2 more)
 
 ### Community 173 - "Community 173"
-Cohesion: 0.29
-Nodes (8): padding-x, input, $type, $value, focus-ring, padding-x, $type, $value
+Cohesion: 0.20
+Nodes (12): padding-x, padding-y, input, $type, $value, focus-ring, padding-x, padding-y (+4 more)
 
 ### Community 174 - "Community 174"
-Cohesion: 0.60
-Nodes (5): $type, $value, border, border, border
-
-### Community 175 - "Community 175"
-Cohesion: 0.60
-Nodes (5): radius, radius, radius, $type, $value
-
-### Community 176 - "Community 176"
-Cohesion: 0.67
-Nodes (4): padding-y, padding-y, $type, $value
+Cohesion: 0.02
+Nodes (133): $(), aa(), addBox(), addControllers(), addElements(), addPlugins(), addScales(), afterAutoSkip() (+125 more)
 
 ### Community 177 - "Community 177"
 Cohesion: 0.67
-Nodes (3): destructive, $type, $value
+Nodes (3): $type, $value, 16
 
 ### Community 178 - "Community 178"
-Cohesion: 0.67
-Nodes (3): destructive-foreground, $type, $value
+Cohesion: 0.04
+Nodes (137): a(), ac(), ae(), ai(), Ao(), apply(), b(), ba() (+129 more)
 
 ### Community 179 - "Community 179"
-Cohesion: 0.67
-Nodes (3): muted, $type, $value
+Cohesion: 0.04
+Nodes (137): a(), ac(), ae(), ai(), Ao(), apply(), b(), ba() (+129 more)
 
 ### Community 180 - "Community 180"
-Cohesion: 0.67
-Nodes (3): primary-foreground, $type, $value
+Cohesion: 0.04
+Nodes (94): acquireContext(), afterBuildTicks(), afterCalculateLabelRotation(), afterDataLimits(), afterDatasetsUpdate(), afterFit(), afterSetDimensions(), afterUpdate() (+86 more)
 
 ### Community 181 - "Community 181"
-Cohesion: 0.67
-Nodes (3): ring, $type, $value
+Cohesion: 0.17
+Nodes (16): active(), _animateOptions(), cancel(), _createAnimations(), _createDescriptors(), da(), _descriptors(), ma() (+8 more)
 
 ### Community 182 - "Community 182"
-Cohesion: 0.67
-Nodes (3): secondary-foreground, $type, $value
+Cohesion: 0.04
+Nodes (94): acquireContext(), afterBuildTicks(), afterCalculateLabelRotation(), afterDataLimits(), afterDatasetsUpdate(), afterFit(), afterSetDimensions(), afterUpdate() (+86 more)
 
 ### Community 183 - "Community 183"
 Cohesion: 0.05
-Nodes (63): applyStack(), aspectRatio(), _calculateBarIndexPixels(), _calculateBarValuePixels(), calculateCircumference(), _calculatePadding(), calculateTotal(), _circumference() (+55 more)
+Nodes (71): applyStack(), aspectRatio(), ba(), ca(), _calculateBarIndexPixels(), _calculateBarValuePixels(), calculateCircumference(), _calculatePadding() (+63 more)
 
 ### Community 184 - "Community 184"
-Cohesion: 0.11
-Nodes (56): addEventListener(), af(), at(), b(), bd(), bf(), bt(), cf() (+48 more)
+Cohesion: 0.06
+Nodes (94): add(), addEventListener(), af(), alpha(), at(), b(), bd(), bf() (+86 more)
 
 ### Community 185 - "Community 185"
-Cohesion: 0.07
-Nodes (46): afterAutoSkip(), buildLookupTable(), buildTicks(), ca(), calculateLabelRotation(), cn(), _computeLabelItems(), _computeLabelSizes() (+38 more)
+Cohesion: 0.06
+Nodes (59): applyStack(), _calculateBarIndexPixels(), _calculateBarValuePixels(), calculateCircumference(), calculateTotal(), _circumference(), _computeAngle(), countVisibleElements() (+51 more)
 
 ### Community 186 - "Community 186"
-Cohesion: 0.07
-Nodes (79): a(), ap(), apply(), as(), bo(), bs(), createResolver(), cs() (+71 more)
+Cohesion: 0.10
+Nodes (39): a(), ad(), ae(), ap(), Au(), bu(), de(), dp() (+31 more)
 
 ### Community 187 - "Community 187"
 Cohesion: 0.05
-Nodes (95): ad(), adjustHitBoxes(), ae(), afterDraw(), Au(), bu(), cd(), Co() (+87 more)
+Nodes (89): acquireContext(), addBox(), adjustHitBoxes(), ar(), beforeDatasetDraw(), br(), chartOptionScopes(), cn() (+81 more)
 
 ### Community 188 - "Community 188"
-Cohesion: 0.17
-Nodes (36): aa(), ac(), bi(), cc(), ce(), ci(), da(), dc() (+28 more)
+Cohesion: 0.07
+Nodes (108): aa(), ac(), ai(), apply(), as(), bi(), bs(), C() (+100 more)
 
 ### Community 189 - "Community 189"
-Cohesion: 0.05
-Nodes (71): acquireContext(), afterBuildTicks(), afterCalculateLabelRotation(), afterDataLimits(), afterDatasetsUpdate(), afterFit(), afterSetDimensions(), afterTickToLabelConversion() (+63 more)
-
-### Community 190 - "Community 190"
-Cohesion: 0.31
-Nodes (11): beforeLayout(), gc(), hl(), inXRange(), inYRange(), jc(), kc(), Mc() (+3 more)
-
-### Community 191 - "Community 191"
-Cohesion: 0.16
-Nodes (28): add(), ai(), C(), di(), ei(), Fi(), _getAnims(), getDevicePixelRatio() (+20 more)
-
-### Community 192 - "Community 192"
-Cohesion: 0.20
-Nodes (15): Ao(), dataset(), Fo(), getRange(), Gi(), index(), ji(), Ki() (+7 more)
-
-### Community 193 - "Community 193"
-Cohesion: 0.15
-Nodes (27): alpha(), br(), Ct(), D(), E(), ee(), ep(), et() (+19 more)
-
-### Community 194 - "Community 194"
-Cohesion: 0.67
-Nodes (4): $type, $value, none, none
-
-### Community 195 - "Community 195"
-Cohesion: 0.21
-Nodes (16): ba(), formats(), getLabels(), getMaxOffset(), getMaxOverflow(), init(), _insertElements(), parse() (+8 more)
-
-### Community 196 - "Community 196"
-Cohesion: 0.67
-Nodes (3): $type, $value, 16
-
-### Community 197 - "Community 197"
-Cohesion: 0.15
-Nodes (23): addBox(), Al(), beforeDatasetDraw(), beforeDatasetsDraw(), beforeDraw(), dl(), el(), first() (+15 more)
-
-### Community 198 - "Community 198"
 Cohesion: 0.67
 Nodes (3): $type, $value, 1
 
+### Community 190 - "Community 190"
+Cohesion: 0.07
+Nodes (69): ad(), ap(), as(), at(), Au(), bu(), Co(), Cu() (+61 more)
+
+### Community 191 - "Community 191"
+Cohesion: 0.06
+Nodes (53): buildTicks(), ca(), calculateLabelRotation(), _calculatePadding(), _computeGridLineItems(), _computeLabelItems(), computeTickLimit(), determineDataLimits() (+45 more)
+
+### Community 192 - "Community 192"
+Cohesion: 0.11
+Nodes (30): Ao(), average(), bo(), Co(), dataset(), dn(), Do(), Fo() (+22 more)
+
+### Community 193 - "Community 193"
+Cohesion: 0.07
+Nodes (56): afterAutoSkip(), bn(), buildLookupTable(), buildTicks(), calculateLabelRotation(), cd(), clear(), clearCache() (+48 more)
+
+### Community 194 - "Community 194"
+Cohesion: 0.60
+Nodes (5): radius, radius, radius, $type, $value
+
+### Community 195 - "Community 195"
+Cohesion: 0.07
+Nodes (69): ad(), ap(), as(), at(), Au(), bu(), Co(), Cu() (+61 more)
+
+### Community 196 - "Community 196"
+Cohesion: 0.60
+Nodes (5): lg, $type, $value, lg, lg
+
+### Community 197 - "Community 197"
+Cohesion: 0.07
+Nodes (65): add_device(), add_label(), add_liaison(), add_main_courante(), add_or_update_site(), add_pylone(), add_stock_item(), advanced_search() (+57 more)
+
+### Community 198 - "Community 198"
+Cohesion: 0.60
+Nodes (5): sm, sm, sm, $type, $value
+
 ### Community 199 - "Community 199"
-Cohesion: 0.67
-Nodes (3): $type, $value, 3
+Cohesion: 0.17
+Nodes (16): active(), _animateOptions(), cancel(), _createAnimations(), _createDescriptors(), da(), _descriptors(), ma() (+8 more)
+
+### Community 201 - "Community 201"
+Cohesion: 0.09
+Nodes (36): adjustHitBoxes(), afterDraw(), _computeTitleHeight(), cr(), cs(), draw(), drawBody(), _drawColorBox() (+28 more)
+
+### Community 202 - "Community 202"
+Cohesion: 0.10
+Nodes (47): add(), addEventListener(), af(), bd(), bt(), _cachedScopes(), cf(), de() (+39 more)
+
+### Community 203 - "Community 203"
+Cohesion: 0.07
+Nodes (49): Path, Path, Path, Path, benchmark_pair(), count_tokens(), main(), print_table() (+41 more)
 
 ### Community 204 - "Community 204"
 Cohesion: 0.67
+Nodes (4): xl, xl, $type, $value
+
+### Community 230 - "Community 230"
+Cohesion: 0.06
+Nodes (59): applyStack(), _calculateBarIndexPixels(), _calculateBarValuePixels(), calculateCircumference(), calculateTotal(), _circumference(), _computeAngle(), countVisibleElements() (+51 more)
+
+### Community 231 - "Community 231"
+Cohesion: 0.06
+Nodes (53): buildTicks(), ca(), calculateLabelRotation(), _calculatePadding(), _computeGridLineItems(), _computeLabelItems(), computeTickLimit(), determineDataLimits() (+45 more)
+
+### Community 232 - "Community 232"
+Cohesion: 0.10
+Nodes (47): add(), addEventListener(), af(), bd(), bt(), _cachedScopes(), cf(), de() (+39 more)
+
+### Community 233 - "Community 233"
+Cohesion: 0.10
+Nodes (36): Al(), beforeLayout(), bl(), cl(), dl(), drawBackground(), drawCaret(), ea() (+28 more)
+
+### Community 234 - "Community 234"
+Cohesion: 0.10
+Nodes (36): Al(), beforeLayout(), bl(), cl(), dl(), drawBackground(), drawCaret(), ea() (+28 more)
+
+### Community 235 - "Community 235"
+Cohesion: 0.08
+Nodes (24): dependencies, clsx, framer-motion, lucide-react, next, react, react-dom, tailwind-merge (+16 more)
+
+### Community 236 - "Community 236"
+Cohesion: 0.10
+Nodes (19): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib, module (+11 more)
+
+### Community 237 - "Community 237"
+Cohesion: 0.33
+Nodes (6): log_db(), log_ui(), log_ui_event(), redact_text(), strip_ansi(), write_log()
+
+### Community 238 - "Community 238"
+Cohesion: 0.12
+Nodes (16): aliases, components, hooks, lib, ui, utils, rsc, $schema (+8 more)
+
+### Community 239 - "Community 239"
+Cohesion: 0.13
+Nodes (14): carto_sdis04 SQLite Database, EQUIPEMENT_PARC Entity, sdis04 SQLite Database, SITES Entity, STOCK Entity, 1. Diagramme Entité-Association (Mermaid ERD), 2. Description des Associations et Cardinalités, Base de données : `carto_sdis04.db` (+6 more)
+
+### Community 240 - "Community 240"
+Cohesion: 0.60
+Nodes (5): $type, $value, border, border, border
+
+### Community 241 - "Community 241"
+Cohesion: 0.14
+Nodes (13): Before / After, Benchmarks, How It Work, <img src="../../docs/assets/dancing-rock.svg" width="20" height="20" alt="rock"/> Caveman (285 tokens), Install, 📄 Original (706 tokens), Part of Caveman, Security (+5 more)
+
+### Community 242 - "Community 242"
+Cohesion: 0.20
+Nodes (14): An(), average(), bn(), getCenterPoint(), getProps(), hasValue(), inRange(), inXRange() (+6 more)
+
+### Community 243 - "Community 243"
+Cohesion: 0.20
+Nodes (14): An(), average(), bn(), getCenterPoint(), getProps(), hasValue(), inRange(), inXRange() (+6 more)
+
+### Community 244 - "Community 244"
+Cohesion: 0.17
+Nodes (11): Boundaries, Caveman Compress, Compress, Compression Rules, Pattern, Preserve EXACTLY (never modify), Preserve Structure, Process (+3 more)
+
+### Community 245 - "Community 245"
+Cohesion: 0.17
+Nodes (6): menus, viewIds, viewLabels, menus, IMenu, MenuProps
+
+### Community 246 - "Community 246"
+Cohesion: 0.12
+Nodes (16): Project Structure Flattening, 1. Simplification de la Structure du Projet (Flattening), 1. Suppression Totale des Hashes (`#`) de l'URL, 2. Contrôleur de Navigation Unifié (`window.changeLegacyView`) dans l'IIFE de l'Iframe, 2. Résolution du Bug d'Accès à la Base de Données, 3. Correction de l'Affichage et du Défilement des Onglets (Points Hauts / Perroquets), 3. Résolution de Conflit de Port (Port 3005 par Défaut), 4. Centrage du Menu de Navigation (+8 more)
+
+### Community 247 - "Community 247"
+Cohesion: 0.25
+Nodes (7): Auth behavior, File size limit, Reporting a vulnerability, Security, Snyk High Risk Rating, What the skill does NOT do, What triggers the rating
+
+### Community 248 - "Community 248"
+Cohesion: 0.25
+Nodes (7): Caveman Help, Configure Default Mode, Deactivate, Language, Modes, More, Skills
+
+### Community 249 - "Community 249"
+Cohesion: 0.29
+Nodes (6): Auto-clarity (inherited), Chaining patterns, Output contracts, What NOT to do, When to use cavecrew vs alternatives, Why this exists (the real win)
+
+### Community 250 - "Community 250"
+Cohesion: 0.33
+Nodes (5): cavecrew, Example chaining, How to invoke, See also, What it does
+
+### Community 251 - "Community 251"
+Cohesion: 0.33
+Nodes (5): caveman-commit, Example output, How to invoke, See also, What it does
+
+### Community 252 - "Community 252"
+Cohesion: 0.33
+Nodes (5): caveman-help, Example output, How to invoke, See also, What it does
+
+### Community 253 - "Community 253"
+Cohesion: 0.33
+Nodes (5): caveman, Example output, How to invoke, See also, What it does
+
+### Community 254 - "Community 254"
+Cohesion: 0.33
+Nodes (5): caveman-review, Example output, How to invoke, See also, What it does
+
+### Community 255 - "Community 255"
+Cohesion: 0.33
+Nodes (5): Auto-Clarity, Boundaries, Intensity, Persistence, Rules
+
+### Community 256 - "Community 256"
+Cohesion: 0.33
+Nodes (5): caveman-stats, Example output, How to invoke, See also, What it does
+
+### Community 257 - "Community 257"
+Cohesion: 0.33
+Nodes (6): add_device(), bulk_delete_devices(), bulk_update_device_cryptage(), calculate_next_key_date(), normalize_device_ids(), update_device_cryptage()
+
+### Community 258 - "Community 258"
+Cohesion: 0.40
+Nodes (4): Auto-Clarity, Boundaries, Examples, Rules
+
+### Community 259 - "Community 259"
+Cohesion: 0.40
+Nodes (4): Auto-Clarity, Boundaries, Examples, Rules
+
+### Community 260 - "Community 260"
+Cohesion: 0.40
+Nodes (4): DolphiSIC Redesign, Installation manuelle, Lancement complet, Structure
+
+### Community 262 - "Community 262"
+Cohesion: 0.33
+Nodes (7): handle_notification_settings(), load_notification_settings(), log_request(), redact_payload(), save_notification_settings(), send_notification_placeholder(), start_timer()
+
+### Community 263 - "Community 263"
+Cohesion: 0.67
+Nodes (4): $type, $value, none, none
+
+### Community 264 - "Community 264"
+Cohesion: 0.67
+Nodes (3): $type, $value, 3
+
+### Community 265 - "Community 265"
+Cohesion: 0.67
+Nodes (3): destructive-foreground, $type, $value
+
+### Community 266 - "Community 266"
+Cohesion: 0.67
+Nodes (3): muted, $type, $value
+
+### Community 276 - "Community 276"
+Cohesion: 0.67
 Nodes (3): $type, $value, 8
 
+### Community 277 - "Community 277"
+Cohesion: 0.67
+Nodes (3): primary-foreground, $type, $value
+
+### Community 278 - "Community 278"
+Cohesion: 0.67
+Nodes (3): primary, $type, $value
+
+### Community 279 - "Community 279"
+Cohesion: 0.67
+Nodes (3): secondary-foreground, $type, $value
+
+### Community 281 - "Community 281"
+Cohesion: 0.67
+Nodes (3): ring, $type, $value
+
+### Community 299 - "Community 299"
+Cohesion: 0.67
+Nodes (3): collect_urgent_operations(), get_urgent_dashboard(), parse_date_value()
+
 ## Knowledge Gaps
-- **1041 isolated node(s):** `$schema`, `$value`, `$type`, `$value`, `$type` (+1036 more)
+- **1185 isolated node(s):** `$schema`, `$value`, `$type`, `$value`, `$type` (+1180 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **43 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **49 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `$()` connect `Project Architecture & Structure` to `Community 192`, `Community 193`, `Community 195`, `Community 197`, `Community 115`, `Community 116`, `Community 183`, `Community 184`, `Community 185`, `Community 186`, `Community 187`, `Community 188`, `Community 189`, `Community 190`, `Community 191`?**
-  _High betweenness centrality (0.059) - this node is a cross-community bridge._
-- **Why does `primitive` connect `Community 98` to `Server Site & Asset Operations`, `Community 69`, `Community 171`, `Community 90`, `Community 28`?**
-  _High betweenness centrality (0.006) - this node is a cross-community bridge._
-- **Why does `color` connect `Server Site & Asset Operations` to `Community 98`?**
-  _High betweenness centrality (0.003) - this node is a cross-community bridge._
+- **Why does `$()` connect `Community 174` to `Community 195`, `Community 230`, `Community 231`, `Community 201`, `Community 202`, `Community 234`, `Community 179`, `Community 243`, `Community 181`, `Community 182`?**
+  _High betweenness centrality (0.030) - this node is a cross-community bridge._
+- **Why does `$()` connect `Community 115` to `Community 199`, `Community 232`, `Community 105`, `Community 233`, `Community 178`, `Community 242`, `Community 180`, `Community 185`, `Community 190`, `Community 191`?**
+  _High betweenness centrality (0.026) - this node is a cross-community bridge._
+- **Why does `$()` connect `Project Architecture & Structure` to `Community 192`, `Community 193`, `Community 116`, `Community 183`, `Community 184`, `Community 186`, `Community 187`, `Community 188`?**
+  _High betweenness centrality (0.021) - this node is a cross-community bridge._
 - **Are the 12 inferred relationships involving `_update()` (e.g. with `bs()` and `bt()`) actually correct?**
   _`_update()` has 12 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 2 inferred relationships involving `i()` (e.g. with `dn()` and `ld()`) actually correct?**
-  _`i()` has 2 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 14 inferred relationships involving `dc()` (e.g. with `ac()` and `aa()`) actually correct?**
-  _`dc()` has 14 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 33 inferred relationships involving `TailwindConfigGenerator` (e.g. with `TestTailwindConfigGenerator` and `.test_add_breakpoints()`) actually correct?**
-  _`TailwindConfigGenerator` has 33 INFERRED edges - model-reasoned connections that need verification._
+- **What connects `Caveman compress scripts.  This package provides tools to compress natural lan`, `Split YAML frontmatter from body. Returns (frontmatter, body).      Memory fil`, `Resolve the out-of-tree backup directory for a given source file.      Backups` to the rest of the system?**
+  _1433 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `V2 Server API Endpoints` be split into smaller, more focused modules?**
+  _Cohesion score 0.06559356136820925 - nodes in this community are weakly interconnected._
+- **Should `Core Server API Endpoints` be split into smaller, more focused modules?**
+  _Cohesion score 0.12280701754385964 - nodes in this community are weakly interconnected._
