@@ -4,3 +4,5 @@ node_modules/
 backend/__pycache__/
 backend/logs/
 backend/notification_settings.json
+backend/.env
+.env

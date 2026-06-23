@@ -109,7 +109,7 @@ export default function Home() {
   useEffect(() => {
     const checkLogin = () => {
       if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('cryptis_token');
+        const token = localStorage.getItem('cryptis_token') || sessionStorage.getItem('cryptis_token');
         setIsLoggedIn(!!token);
       }
     };

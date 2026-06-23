@@ -120,7 +120,11 @@
       }
 
       .dolphi-dashboard-tab {
+        display: inline-flex;
         flex: 1;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
         min-width: 150px;
         padding: 10px 16px;
         border: 0;
@@ -131,6 +135,11 @@
         font-weight: 700;
         cursor: pointer;
         transition: var(--transition);
+      }
+
+      .dolphi-dashboard-tab svg {
+        width: 15px;
+        height: 15px;
       }
 
       .dolphi-dashboard-tab.active {
@@ -149,7 +158,7 @@
 
       .dolphi-dashboard-content {
         width: 100%;
-        max-width: 1120px;
+        max-width: 1480px;
         margin: 0 auto;
       }
 
@@ -164,6 +173,487 @@
         max-width: 960px;
         margin-right: auto;
         margin-left: auto;
+      }
+
+      .dolphi-dashboard-hero {
+        display: grid;
+        grid-template-columns: minmax(240px, 1fr) minmax(360px, 520px) minmax(240px, 1fr);
+        align-items: start;
+        gap: 24px;
+        margin-bottom: 22px;
+      }
+
+      .dolphi-dashboard-title h1 {
+        margin: 0;
+        font-size: 2rem;
+      }
+
+      .dolphi-dashboard-title p {
+        margin: 6px 0 0;
+        color: var(--text-muted);
+      }
+
+      .dolphi-dashboard-title::after {
+        display: block;
+        width: 34px;
+        height: 3px;
+        margin-top: 12px;
+        border-radius: 2px;
+        background: var(--primary);
+        content: '';
+      }
+
+      .dolphi-dashboard-updated {
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-end;
+        gap: 8px;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        line-height: 1.5;
+        text-align: right;
+      }
+
+      .dolphi-dashboard-updated svg {
+        width: 16px;
+        height: 16px;
+        margin-top: 1px;
+      }
+
+      .dolphi-dashboard-updated > div {
+        display: grid;
+        gap: 4px;
+      }
+
+      .dolphi-dashboard-updated span,
+      .dolphi-dashboard-updated strong,
+      .dolphi-dashboard-updated small {
+        display: block;
+      }
+
+      .dolphi-dashboard-updated strong {
+        color: var(--text-main);
+      }
+
+      .dolphi-dashboard-updated small {
+        max-width: 230px;
+      }
+
+      .dolphi-dashboard-kpis {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 360px));
+        justify-content: center;
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+
+      .dolphi-kpi-card {
+        display: grid;
+        grid-template-columns: 52px minmax(0, 1fr);
+        align-items: center;
+        gap: 16px;
+        min-width: 0;
+        min-height: 112px;
+        padding: 18px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--card-bg-solid);
+        color: var(--text-main);
+        font-family: inherit;
+        text-align: left;
+      }
+
+      button.dolphi-kpi-card {
+        cursor: pointer;
+        transition: border-color 180ms ease, background 180ms ease;
+      }
+
+      button.dolphi-kpi-card:hover,
+      button.dolphi-kpi-card.active {
+        border-color: var(--primary);
+        background: rgba(230, 57, 70, 0.06);
+      }
+
+      .dolphi-kpi-icon {
+        display: inline-flex;
+        width: 52px;
+        height: 52px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+      }
+
+      .dolphi-kpi-icon svg {
+        width: 25px;
+        height: 25px;
+      }
+
+      .dolphi-kpi-danger { background: rgba(244, 63, 94, 0.18); color: #fb7185; }
+      .dolphi-kpi-warning { background: rgba(245, 158, 11, 0.18); color: #f59e0b; }
+      .dolphi-kpi-info { background: rgba(56, 189, 248, 0.16); color: #38bdf8; }
+      .dolphi-kpi-success { background: rgba(16, 185, 129, 0.16); color: #10b981; }
+
+      .dolphi-kpi-copy span,
+      .dolphi-kpi-copy small {
+        display: block;
+      }
+
+      .dolphi-kpi-copy > span {
+        color: var(--text-muted);
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      .dolphi-kpi-copy strong {
+        display: block;
+        margin: 4px 0;
+        font-size: 1.75rem;
+        line-height: 1;
+      }
+
+      .dolphi-kpi-copy small {
+        overflow: hidden;
+        color: var(--text-muted);
+        font-size: 0.7rem;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .dolphi-kpi-copy small::before {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        margin-right: 6px;
+        border-radius: 50%;
+        background: currentColor;
+        content: '';
+      }
+
+      .dolphi-dashboard-analytics {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        margin-bottom: 18px;
+      }
+
+      .dolphi-analytics-panel {
+        min-width: 0;
+        padding: 18px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--card-bg-solid);
+      }
+
+      .dolphi-analytics-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .dolphi-analytics-heading h2 {
+        margin: 0;
+        font-size: 0.9rem;
+      }
+
+      .dolphi-type-overview {
+        display: grid;
+        grid-template-columns: 170px minmax(0, 1fr);
+        align-items: center;
+        gap: 24px;
+      }
+
+      .dolphi-type-donut {
+        position: relative;
+        width: 132px;
+        aspect-ratio: 1;
+        margin: 0 auto;
+        border-radius: 50%;
+        background: conic-gradient(#38bdf8 0 var(--portable-end, 50%), #f59e0b var(--portable-end, 50%) var(--mobile-end, 100%), #fb7185 var(--mobile-end, 100%) 100%);
+      }
+
+      .dolphi-type-donut::after {
+        position: absolute;
+        inset: 24px;
+        border-radius: 50%;
+        background: var(--card-bg-solid);
+        content: '';
+      }
+
+      .dolphi-type-legend {
+        display: grid;
+        gap: 12px;
+      }
+
+      .dolphi-type-legend-row {
+        display: grid;
+        grid-template-columns: 12px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .dolphi-type-legend-swatch {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+      }
+
+      .dolphi-type-legend-row strong,
+      .dolphi-type-legend-row small {
+        display: block;
+      }
+
+      .dolphi-type-legend-row small {
+        color: var(--text-muted);
+        font-size: 0.7rem;
+      }
+
+      .dolphi-deadline-bar {
+        display: flex;
+        width: 100%;
+        height: 12px;
+        overflow: hidden;
+        border-radius: 6px;
+        background: var(--secondary);
+      }
+
+      .dolphi-deadline-bar span { min-width: 2px; }
+      .dolphi-deadline-overdue { background: #f43f5e; }
+      .dolphi-deadline-soon { background: #f59e0b; }
+      .dolphi-deadline-valid { background: #10b981; }
+
+      .dolphi-deadline-legend {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 22px;
+      }
+
+      .dolphi-deadline-stat {
+        min-width: 0;
+        padding: 0 4px;
+      }
+
+      .dolphi-deadline-stat span,
+      .dolphi-deadline-stat strong,
+      .dolphi-deadline-stat small {
+        display: block;
+      }
+
+      .dolphi-deadline-stat span {
+        color: var(--text-muted);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .dolphi-deadline-stat strong {
+        margin-top: 8px;
+        font-size: 1.3rem;
+      }
+
+      .dolphi-deadline-stat small {
+        margin-top: 4px;
+        color: var(--text-muted);
+        font-size: 0.7rem;
+      }
+
+      .dolphi-dashboard-table-panel {
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--card-bg-solid);
+      }
+
+      .dolphi-dashboard-table-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 14px;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .dolphi-dashboard-table-title,
+      .dolphi-dashboard-table-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .dolphi-dashboard-table-title h2 {
+        margin: 0;
+        font-size: 0.9rem;
+      }
+
+      .dolphi-dashboard-table-actions .dolphi-device-type-toolbar {
+        margin: 0;
+      }
+
+      .dolphi-export-button svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      .dolphi-dashboard-table-wrap {
+        overflow-x: auto;
+      }
+
+      .dolphi-dashboard-table {
+        width: 100%;
+        min-width: 820px;
+        border-collapse: collapse;
+      }
+
+      .dolphi-dashboard-table th {
+        padding: 11px 16px;
+        font-size: 0.68rem;
+      }
+
+      .dolphi-dashboard-table td {
+        padding: 11px 16px;
+        font-size: 0.78rem;
+        vertical-align: middle;
+      }
+
+      .dolphi-dashboard-device-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .dolphi-dashboard-device-cell .dolphi-goto-device {
+        width: 28px;
+        height: 28px;
+      }
+
+      .dolphi-dashboard-affectation {
+        max-width: 280px;
+        overflow: hidden;
+        color: var(--text-muted);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .dolphi-dashboard-delay {
+        min-width: 150px;
+      }
+
+      .dolphi-dashboard-delay-value {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .dolphi-dashboard-delay-value strong {
+        min-width: 48px;
+        color: #fb7185;
+      }
+
+      .dolphi-dashboard-delay-bar {
+        width: 100px;
+        height: 5px;
+        overflow: hidden;
+        border-radius: 3px;
+        background: var(--secondary);
+      }
+
+      .dolphi-dashboard-delay-bar i {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: #f43f5e;
+      }
+
+      .dolphi-dashboard-row-actions {
+        width: 56px;
+        text-align: right;
+      }
+
+      .dolphi-dashboard-icon-action {
+        display: inline-flex;
+        width: 32px;
+        height: 32px;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        background: transparent;
+        color: var(--text-muted);
+        cursor: pointer;
+      }
+
+      .dolphi-dashboard-icon-action:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+
+      .dolphi-dashboard-icon-action svg,
+      .dolphi-hidden-button svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      .dolphi-hidden-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+      }
+
+      .dolphi-hidden-count {
+        min-width: 20px;
+        padding: 2px 6px;
+        border-radius: 10px;
+        background: var(--secondary);
+        font-size: 0.7rem;
+        text-align: center;
+      }
+
+      .dolphi-hidden-list {
+        display: grid;
+        gap: 10px;
+        max-height: 52vh;
+        margin-top: 18px;
+        overflow-y: auto;
+      }
+
+      .dolphi-hidden-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 14px;
+        padding: 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+      }
+
+      .dolphi-hidden-row strong,
+      .dolphi-hidden-row small {
+        display: block;
+      }
+
+      .dolphi-hidden-row small {
+        margin-top: 4px;
+        color: var(--text-muted);
+      }
+
+      .dolphi-dashboard-delay-upcoming strong { color: #f59e0b; }
+      .dolphi-dashboard-delay-upcoming .dolphi-dashboard-delay-bar i { background: #f59e0b; }
+
+      .dolphi-dashboard-empty-row td {
+        padding: 28px;
+        color: var(--text-muted);
+        text-align: center;
+      }
+
+      [data-dashboard-panel][hidden] {
+        display: none !important;
       }
 
       .dolphi-summary-card {
@@ -280,6 +770,126 @@
         overflow-wrap: anywhere;
         margin-top: 3px;
         color: var(--text-muted);
+      }
+
+      .dolphi-operation-title-row {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .dolphi-device-type-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 8px;
+        border: 1px solid currentColor;
+        border-radius: 999px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        line-height: 1;
+        text-transform: uppercase;
+      }
+
+      .dolphi-device-type-badge svg,
+      .dolphi-device-type-filter svg {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+      }
+
+      .dolphi-device-type-mobile {
+        background: rgba(251, 146, 60, 0.12);
+        color: #fb923c;
+      }
+
+      .dolphi-device-type-portable {
+        background: rgba(56, 189, 248, 0.12);
+        color: #38bdf8;
+      }
+
+      .dolphi-device-type-alert {
+        background: rgba(244, 63, 94, 0.12);
+        color: #fb7185;
+      }
+
+      .dolphi-device-type-infra {
+        background: rgba(45, 212, 191, 0.12);
+        color: #2dd4bf;
+      }
+
+      .dolphi-device-type-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 14px;
+      }
+
+      .dolphi-device-type-toolbar > span {
+        color: var(--text-muted);
+        font-size: 0.76rem;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .dolphi-device-type-filters {
+        display: inline-flex;
+        gap: 4px;
+        padding: 4px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--card-bg-solid);
+      }
+
+      .dolphi-device-type-filter {
+        display: inline-flex;
+        min-height: 34px;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 7px 12px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--text-muted);
+        font-family: inherit;
+        font-size: 0.76rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition);
+      }
+
+      .dolphi-device-type-filter:hover,
+      .dolphi-device-type-filter.active {
+        background: var(--secondary);
+        color: #ffffff;
+      }
+
+      .dolphi-device-type-filter[data-dashboard-device-type="MOBILE"] {
+        color: #fb923c;
+      }
+
+      .dolphi-device-type-filter[data-dashboard-device-type="MOBILE"]:hover,
+      .dolphi-device-type-filter[data-dashboard-device-type="MOBILE"].active {
+        background: rgba(251, 146, 60, 0.16);
+        color: #fb923c;
+      }
+
+      .dolphi-device-type-filter[data-dashboard-device-type="PORTATIF"] {
+        color: #38bdf8;
+      }
+
+      .dolphi-device-type-filter[data-dashboard-device-type="PORTATIF"]:hover,
+      .dolphi-device-type-filter[data-dashboard-device-type="PORTATIF"].active {
+        background: rgba(56, 189, 248, 0.16);
+        color: #38bdf8;
+      }
+
+      .dolphi-device-type-filter:focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
       }
 
       .dolphi-operation-delay {
@@ -539,6 +1149,25 @@
         padding: 18px 22px !important;
       }
 
+      @media (max-width: 1100px) {
+        .dolphi-dashboard-hero {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .dolphi-dashboard-tabs {
+          grid-column: 1 / -1;
+          grid-row: 2;
+        }
+
+        .dolphi-dashboard-kpis {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .dolphi-dashboard-analytics {
+          grid-template-columns: 1fr;
+        }
+      }
+
       @media (max-width: 720px) {
         .dolphisic-cookie-banner {
           left: 12px;
@@ -569,6 +1198,55 @@
         .dolphi-dashboard-columns,
         .dolphi-settings-grid {
           grid-template-columns: 1fr;
+        }
+
+        .dolphi-dashboard-hero,
+        .dolphi-dashboard-kpis {
+          grid-template-columns: 1fr;
+        }
+
+        .dolphi-dashboard-tabs {
+          grid-column: auto;
+          grid-row: auto;
+          width: 100%;
+          order: 3;
+        }
+
+        .dolphi-dashboard-updated {
+          justify-content: flex-start;
+          text-align: left;
+        }
+
+        .dolphi-type-overview {
+          grid-template-columns: 1fr;
+        }
+
+        .dolphi-deadline-legend {
+          grid-template-columns: 1fr;
+        }
+
+        .dolphi-dashboard-table-actions {
+          width: 100%;
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .dolphi-export-button {
+          width: 100%;
+        }
+
+        .dolphi-device-type-toolbar {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .dolphi-device-type-filters {
+          width: 100%;
+        }
+
+        .dolphi-device-type-filter {
+          flex: 1;
+          min-width: 0;
         }
       }
     </style>
@@ -635,10 +1313,24 @@
 
         function migrateStorageToCookies() {
           MANAGED_KEYS.forEach(function(key) {
-            const value = getNativeLocalStorage('get', key);
+            const sessionValue = nativeGetItem.call(sessionStorage, key);
+            const value = sessionValue !== null ? sessionValue : getNativeLocalStorage('get', key);
             if (value !== null && value !== undefined) {
+              getNativeLocalStorage('set', key, value);
+              nativeRemoveItem.call(sessionStorage, key);
               setCookie(cookieName(key), value, ONE_YEAR);
             }
+          });
+        }
+
+        function migratePersistentStorageToSession() {
+          MANAGED_KEYS.forEach(function(key) {
+            const persistentValue = getNativeLocalStorage('get', key);
+            const sessionValue = nativeGetItem.call(sessionStorage, key);
+            if (sessionValue === null && persistentValue !== null && persistentValue !== undefined) {
+              nativeSetItem.call(sessionStorage, key, persistentValue);
+            }
+            getNativeLocalStorage('remove', key);
           });
         }
 
@@ -705,27 +1397,40 @@
         }
 
         Storage.prototype.getItem = function(key) {
-          if (this === localStorage && MANAGED_KEYS.includes(key) && getDecision() === 'accepted') {
-            const value = getCookie(cookieName(key));
-            if (value !== null) return value;
+          if (this === localStorage && MANAGED_KEYS.includes(key)) {
+            if (getDecision() === 'accepted') {
+              const value = getCookie(cookieName(key));
+              if (value !== null) return value;
+              return nativeGetItem.call(localStorage, key);
+            }
+            return nativeGetItem.call(sessionStorage, key);
           }
           return nativeGetItem.apply(this, arguments);
         };
 
         Storage.prototype.setItem = function(key, value) {
-          const result = nativeSetItem.apply(this, arguments);
-          if (this === localStorage && MANAGED_KEYS.includes(key) && getDecision() === 'accepted') {
-            setCookie(cookieName(key), value, ONE_YEAR);
+          if (this === localStorage && MANAGED_KEYS.includes(key)) {
+            if (getDecision() === 'accepted') {
+              nativeSetItem.call(localStorage, key, value);
+              nativeRemoveItem.call(sessionStorage, key);
+              setCookie(cookieName(key), value, ONE_YEAR);
+            } else {
+              nativeRemoveItem.call(localStorage, key);
+              nativeSetItem.call(sessionStorage, key, value);
+            }
+            return;
           }
-          return result;
+          return nativeSetItem.apply(this, arguments);
         };
 
         Storage.prototype.removeItem = function(key) {
-          const result = nativeRemoveItem.apply(this, arguments);
           if (this === localStorage && MANAGED_KEYS.includes(key)) {
+            nativeRemoveItem.call(localStorage, key);
+            nativeRemoveItem.call(sessionStorage, key);
             deleteCookie(cookieName(key));
+            return;
           }
-          return result;
+          return nativeRemoveItem.apply(this, arguments);
         };
 
         function removeBanner() {
@@ -742,10 +1447,8 @@
 
         function refuseCookies() {
           getNativeLocalStorage('set', CONSENT_KEY, 'refused');
+          migratePersistentStorageToSession();
           clearManagedCookies();
-          if (nativeFetch) {
-            nativeFetch('/api/logout', { method: 'POST', keepalive: true }).catch(function() {});
-          }
           removeBanner();
         }
 
@@ -756,7 +1459,7 @@
           banner.innerHTML =
             '<div>' +
               '<strong>Gestion des cookies</strong>' +
-              '<p>DolphiSIC peut utiliser des cookies pour conserver la session, le profil utilisateur et le theme choisi. Vous pouvez accepter ou refuser ces cookies.</p>' +
+              '<p>Accepter conserve votre session après fermeture du navigateur. Refuser limite la session à cet onglet.</p>' +
             '</div>' +
             '<div class="dolphisic-cookie-actions">' +
               '<button type="button" class="dolphisic-cookie-refuse">Refuser</button>' +
@@ -781,7 +1484,8 @@
 
         if (getDecision() === 'accepted') {
           migrateStorageToCookies();
-        } else if (getDecision() === 'refused') {
+        } else {
+          migratePersistentStorageToSession();
           clearManagedCookies();
         }
 
@@ -799,7 +1503,7 @@
         document.addEventListener('DOMContentLoaded', renderBanner);
       })();
     </script>
-    <script type="module" crossorigin src="/assets/index-DyRupmtp.js"></script>
+    <script type="module" crossorigin src="/assets/index-DyRupmtp.js?v=20260623-dashboard-hide"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-CzgsKiV0.css">
     <link rel="stylesheet" href="/assets/magic-effects.css">
   </head>
@@ -1061,7 +1765,7 @@
           }
 
           if (card && !card.classList.contains('login-magic-wrap')) {
-            card.classList.add('login-magic-wrap', 'magic-entrance');
+            card.classList.add('login-magic-wrap');
             trackMouse(card);
           }
 
@@ -1305,6 +2009,8 @@
         let dashboardSection = 'cryptage';
         let dashboardFilter = 'overdue_cryptage';
         let lastCryptageFilter = 'overdue_cryptage';
+        let dashboardDeviceType = 'ALL';
+        let dashboardCurrentItems = [];
         let pendingDeviceNavigation = null;
         const selectedDeviceIds = new Set();
 
@@ -1446,12 +2152,60 @@
           setTimeout(() => processPendingDeviceNavigation(0), 100);
         }
 
-        function operationRow(item, label, upcoming) {
-          const row = document.createElement('div');
-          row.className = 'dolphi-operation-row';
+        function deviceTypeIcon(type) {
+          const normalized = normalizedText(type);
+          if (normalized === 'MOBILE') {
+            return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 16v2"></path><path d="M19 16v2"></path><rect width="20" height="8" x="2" y="8" rx="2"></rect><path d="M18 12h.01"></path></svg>';
+          }
+          if (normalized === 'PORTATIF') {
+            return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"></rect><path d="M12 18h.01"></path></svg>';
+          }
+          if (normalized === 'ALERTE') {
+            return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"></path><path d="M22 8c0-2.3-.8-4.3-2-6"></path><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"></path><path d="M4 2C2.8 3.7 2 5.7 2 8"></path></svg>';
+          }
+          return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.9 16.1C1 12.2 1 5.8 4.9 1.9"></path><path d="M7.8 4.7a6.14 6.14 0 0 0-.8 7.5"></path><circle cx="12" cy="9" r="2"></circle><path d="M16.2 4.8c2 2 2.26 5.11.8 7.47"></path><path d="M19.1 1.9a9.96 9.96 0 0 1 0 14.1"></path><path d="M9.5 18h5"></path><path d="m8 22 4-11 4 11"></path></svg>';
+        }
 
+        function deviceTypeMeta(type) {
+          const normalized = normalizedText(type);
+          if (normalized === 'MOBILE') {
+            return { label: 'Mobile', className: 'dolphi-device-type-mobile', icon: deviceTypeIcon('MOBILE') };
+          }
+          if (normalized === 'PORTATIF') {
+            return { label: 'Portatif', className: 'dolphi-device-type-portable', icon: deviceTypeIcon('PORTATIF') };
+          }
+          if (normalized === 'ALERTE') {
+            return { label: 'Alerte', className: 'dolphi-device-type-alert', icon: deviceTypeIcon('ALERTE') };
+          }
+          if (normalized === 'INFRA') {
+            return { label: 'Infra', className: 'dolphi-device-type-infra', icon: deviceTypeIcon('INFRA') };
+          }
+          return null;
+        }
+
+        function dashboardIcon(name) {
+          const start = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+          if (name === 'shield') return start + '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path></svg>';
+          if (name === 'clock') return start + '<circle cx="12" cy="12" r="10"></circle><path d="M12 6v6h4"></path></svg>';
+          if (name === 'calendar') return start + '<path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="m9 16 2 2 4-4"></path></svg>';
+          if (name === 'download') return start + '<path d="M12 15V3"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path></svg>';
+          if (name === 'loans') return start + '<path d="M8 3 4 7l4 4"></path><path d="M4 7h16"></path><path d="m16 21 4-4-4-4"></path><path d="M20 17H4"></path></svg>';
+          if (name === 'eye') return start + '<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+          if (name === 'eye-off') return start + '<path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"></path><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"></path><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"></path><path d="m2 2 20 20"></path></svg>';
+          if (name === 'restore') return start + '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>';
+          return start + '<path d="M4.9 16.1C1 12.2 1 5.8 4.9 1.9"></path><path d="M7.8 4.7a6.14 6.14 0 0 0-.8 7.5"></path><circle cx="12" cy="9" r="2"></circle><path d="M16.2 4.8c2 2 2.26 5.11.8 7.47"></path><path d="M19.1 1.9a9.96 9.96 0 0 1 0 14.1"></path><path d="M9.5 18h5"></path><path d="m8 22 4-11 4 11"></path></svg>';
+        }
+
+        function filterDashboardDevices(items) {
+          if (dashboardDeviceType === 'ALL') return items;
+          return items.filter(item => normalizedText(item.type) === dashboardDeviceType);
+        }
+
+        function operationRow(item, label, upcoming) {
+          const row = document.createElement('tr');
+          const deviceCell = document.createElement('td');
           const main = document.createElement('div');
-          main.className = 'dolphi-operation-main';
+          main.className = 'dolphi-dashboard-device-cell';
           if (item.id && item.cis && item.num_serie && item.type) {
             const goButton = document.createElement('button');
             goButton.type = 'button';
@@ -1461,29 +2215,117 @@
             goButton.addEventListener('click', () => navigateToDevice(item));
             main.appendChild(goButton);
           }
-          const identity = document.createElement('div');
           const title = document.createElement('strong');
           title.textContent = item.num_serie || item.nom || item.modele || 'Matériel';
-          const detail = document.createElement('small');
-          detail.textContent = [item.modele, item.cis, item.emprunteur].filter(Boolean).join(' · ');
-          identity.append(title, detail);
-          main.appendChild(identity);
+          main.appendChild(title);
+          deviceCell.appendChild(main);
 
-          const delay = document.createElement('div');
-          delay.className = 'dolphi-operation-delay';
-          const value = upcoming ? item.days_remaining : item.days_overdue;
-          delay.innerHTML = '<strong>' + escapeHtml(value) + ' j</strong><small>' + escapeHtml(label) + '</small>';
-          row.append(main, delay);
+          const typeCell = document.createElement('td');
+          const typeMeta = deviceTypeMeta(item.type);
+          if (typeMeta) {
+            const typeBadge = document.createElement('span');
+            typeBadge.className = 'dolphi-device-type-badge ' + typeMeta.className;
+            typeBadge.innerHTML = typeMeta.icon + '<span>' + typeMeta.label + '</span>';
+            typeCell.appendChild(typeBadge);
+          } else {
+            typeCell.textContent = '—';
+          }
+
+          const affectationCell = document.createElement('td');
+          affectationCell.className = 'dolphi-dashboard-affectation';
+          affectationCell.textContent = [item.cis, item.affectation || item.emprunteur, item.modele].filter(Boolean).join(' · ');
+
+          const dateCell = document.createElement('td');
+          dateCell.textContent = item.date_cle_a_faire || item.date_fin || '—';
+
+          const delayCell = document.createElement('td');
+          let delayVal = upcoming ? item.days_remaining : item.days_overdue;
+          let delayLbl = label;
+          let delayClass = 'dolphi-dashboard-delay' + (upcoming ? ' dolphi-dashboard-delay-upcoming' : '');
+
+          if (dashboardFilter === 'hidden_devices') {
+            if (item.days_overdue != null) {
+              delayVal = item.days_overdue;
+              delayLbl = 'de retard';
+              delayClass = 'dolphi-dashboard-delay';
+            } else if (item.days_remaining != null) {
+              delayVal = item.days_remaining;
+              delayLbl = 'restants';
+              delayClass = 'dolphi-dashboard-delay dolphi-dashboard-delay-upcoming';
+            } else {
+              delayVal = '—';
+              delayLbl = 'masqué';
+              delayClass = 'dolphi-dashboard-delay';
+            }
+          }
+
+          delayCell.className = delayClass;
+          if (delayVal !== '—') {
+            const barWidth = Math.min(100, Math.max(10, Math.log10(Number(delayVal || 0) + 1) * 30));
+            delayCell.innerHTML = '<div class="dolphi-dashboard-delay-value"><strong>' + escapeHtml(delayVal) + ' j</strong><span class="dolphi-dashboard-delay-bar"><i style="width:' + barWidth + '%"></i></span></div><small>' + escapeHtml(delayLbl) + '</small>';
+          } else {
+            delayCell.textContent = '—';
+          }
+
+          const actionCell = document.createElement('td');
+          actionCell.className = 'dolphi-dashboard-row-actions';
+          if (dashboardFilter === 'hidden_devices') {
+            const restoreButton = document.createElement('button');
+            restoreButton.type = 'button';
+            restoreButton.className = 'dolphi-dashboard-icon-action';
+            restoreButton.title = 'Restaurer au tableau de bord';
+            restoreButton.setAttribute('aria-label', 'Restaurer cet équipement au tableau de bord');
+            restoreButton.innerHTML = dashboardIcon('restore');
+            restoreButton.addEventListener('click', () => restoreDashboardDevice(item, restoreButton));
+            actionCell.appendChild(restoreButton);
+          } else if (item.id && item.date_cle_a_faire) {
+            const hideButton = document.createElement('button');
+            hideButton.type = 'button';
+            hideButton.className = 'dolphi-dashboard-icon-action';
+            hideButton.title = 'Masquer du tableau de bord';
+            hideButton.setAttribute('aria-label', 'Masquer cet équipement du tableau de bord');
+            hideButton.innerHTML = dashboardIcon('eye-off');
+            hideButton.addEventListener('click', () => hideDashboardDevice(item, hideButton));
+            actionCell.appendChild(hideButton);
+          }
+          row.append(deviceCell, typeCell, affectationCell, dateCell, delayCell, actionCell);
           return row;
         }
+
+        async function hideDashboardDevice(item, button) {
+          if (!window.confirm("Voulez-vous vraiment masquer cet équipement ?\n\nCela le retirera du tableau de bord et diminuera les compteurs d'appareils à mettre à jour de 1 de partout.")) {
+            return;
+          }
+          button.disabled = true;
+          try {
+            await fetchJson('/api/dashboard/devices/' + item.id + '/hide', { method: 'POST' });
+            await loadDashboard();
+          } catch (error) {
+            button.disabled = false;
+            alert(error.message);
+          }
+        }
+
+        async function restoreDashboardDevice(item, button) {
+          button.disabled = true;
+          try {
+            await fetchJson('/api/dashboard/devices/' + item.id + '/restore', { method: 'POST' });
+            await loadDashboard();
+          } catch (error) {
+            button.disabled = false;
+            alert(error.message);
+          }
+        }
+
+
 
         function fillOperationList(id, items, label, upcoming) {
           const list = extensionMain.querySelector('#' + id);
           list.innerHTML = '';
           if (!items.length) {
-            const empty = document.createElement('div');
-            empty.className = 'dolphi-empty';
-            empty.textContent = 'Aucune opération dans cette catégorie.';
+            const empty = document.createElement('tr');
+            empty.className = 'dolphi-dashboard-empty-row';
+            empty.innerHTML = '<td colspan="6">Aucune opération dans cette catégorie.</td>';
             list.appendChild(empty);
             return;
           }
@@ -1516,15 +2358,21 @@
           const oneDay = 86400000;
           const overdueCryptage = [];
           const approachingCryptage = [];
+          let upToDateCryptage = 0;
+          const typeDistribution = {};
           devices.filter(item => {
             const type = String(item.type || '').trim().toUpperCase();
-            return String(item.cis || '').trim().toUpperCase() !== 'TEST' && type !== 'BIP' && type !== 'BIPS';
+            const cis = String(item.cis || '').trim().toUpperCase();
+            return !['TEST', 'PERDU', 'REFORME', 'RÉFORME'].includes(cis) && type !== 'BIP' && type !== 'BIPS';
           }).forEach(item => {
             const dueDate = parseDashboardDate(item.date_cle_a_faire);
             if (!dueDate) return;
+            const type = normalizedText(item.type) || 'AUTRE';
+            typeDistribution[type] = (typeDistribution[type] || 0) + 1;
             const days = Math.round((dueDate - today) / oneDay);
             if (days < 0) overdueCryptage.push({ ...item, days_overdue: Math.abs(days) });
             else if (days <= 30) approachingCryptage.push({ ...item, days_remaining: days });
+            else upToDateCryptage += 1;
           });
           const overdueLoans = stock
             .filter(item => String(item.cis || '').trim().toUpperCase() !== 'TEST' && item.active_pret_id)
@@ -1542,6 +2390,9 @@
             summary: {
               overdue_cryptage: overdueCryptage.length,
               approaching_cryptage: approachingCryptage.length,
+              up_to_date_cryptage: upToDateCryptage,
+              total_cryptage: Object.values(typeDistribution).reduce((sum, count) => sum + count, 0),
+              type_distribution: typeDistribution,
               overdue_loans: overdueLoans.length,
               total_urgent: overdueCryptage.length + overdueLoans.length
             },
@@ -1553,8 +2404,10 @@
 
         async function loadDashboard() {
           const feedback = extensionMain.querySelector('#dolphi-dashboard-feedback');
-          feedback.className = 'dolphi-feedback';
-          feedback.textContent = 'Chargement des opérations...';
+          if (feedback) {
+            feedback.className = 'dolphi-feedback';
+            feedback.textContent = 'Chargement des opérations...';
+          }
           try {
             let data;
             try {
@@ -1564,10 +2417,14 @@
             }
             dashboardData = data;
             updateDashboardFilter();
-            feedback.remove();
+            if (feedback) {
+              feedback.remove();
+            }
           } catch (error) {
-            feedback.className = 'dolphi-feedback error';
-            feedback.textContent = error.message;
+            if (feedback) {
+              feedback.className = 'dolphi-feedback error';
+              feedback.textContent = error.message;
+            }
           }
         }
 
@@ -1589,6 +2446,13 @@
               label: 'restants',
               upcoming: true
             },
+            hidden_devices: {
+              title: 'Appareils masqués',
+              count: summary.hidden_devices || 0,
+              items: dashboardData.hidden_devices || [],
+              label: 'masqué',
+              upcoming: false
+            },
             overdue_loans: {
               title: 'Prêts en retard',
               count: summary.overdue_loans || 0,
@@ -1598,11 +2462,63 @@
             }
           };
           const selected = filters[dashboardFilter] || filters.overdue_cryptage;
-          extensionMain.querySelector('#cryptage-count').textContent = filters.overdue_cryptage.count;
-          extensionMain.querySelector('#approaching-count').textContent = filters.approaching_cryptage.count;
+          const selectedItems = dashboardSection === 'cryptage' ? filterDashboardDevices(selected.items) : selected.items;
+          dashboardCurrentItems = selectedItems;
+          const overdueCount = filterDashboardDevices(filters.overdue_cryptage.items).length;
+          const approachingCount = filterDashboardDevices(filters.approaching_cryptage.items).length;
+          const validCount = Number(summary.up_to_date_cryptage || 0);
+          const totalCount = Number(summary.total_cryptage || (filters.overdue_cryptage.count + filters.approaching_cryptage.count + validCount));
+          extensionMain.querySelector('#cryptage-count').textContent = overdueCount;
+          extensionMain.querySelector('#approaching-count').textContent = approachingCount;
+          extensionMain.querySelector('#hidden-count').textContent = Number(summary.hidden_devices || 0);
           extensionMain.querySelector('#loan-count').textContent = filters.overdue_loans.count;
           extensionMain.querySelector('#dashboard-filter-title').textContent = selected.title;
-          extensionMain.querySelector('#dashboard-filter-badge').textContent = selected.count;
+          extensionMain.querySelector('#dashboard-filter-badge').textContent = selectedItems.length;
+
+          const activity = dashboardData.last_cryptage_update;
+          const activityDate = activity && activity.updated_at ? new Date(activity.updated_at) : null;
+          let updatedLabel = 'Aucun cryptage enregistré';
+          let updatedDetail = '';
+          if (activityDate && !Number.isNaN(activityDate.getTime())) {
+            updatedLabel = activityDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+            if (activity.date_only) {
+              updatedDetail = 'Heure historique non disponible';
+            } else {
+              updatedLabel += ' à ' + activityDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+              updatedDetail = activity.device_count + ' équipement' + (activity.device_count > 1 ? 's' : '') + ' mis à jour';
+            }
+          }
+          extensionMain.querySelector('#dashboard-updated-at').textContent = updatedLabel;
+          extensionMain.querySelector('#dashboard-updated-detail').textContent = updatedDetail;
+
+          const distribution = summary.type_distribution || {};
+          const mobileCount = Number(distribution.MOBILE || 0);
+          const portableCount = Number(distribution.PORTATIF || 0);
+          const otherCount = Math.max(0, totalCount - mobileCount - portableCount);
+          const distributionTotal = Math.max(1, mobileCount + portableCount + otherCount);
+          const portablePercent = portableCount / distributionTotal * 100;
+          const mobilePercent = mobileCount / distributionTotal * 100;
+          const donut = extensionMain.querySelector('#dashboard-type-donut');
+          donut.style.setProperty('--portable-end', portablePercent + '%');
+          donut.style.setProperty('--mobile-end', (portablePercent + mobilePercent) + '%');
+          extensionMain.querySelector('#portable-total').textContent = portableCount;
+          const formatPercent = value => value.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %';
+          extensionMain.querySelector('#portable-percent').textContent = formatPercent(portablePercent);
+          extensionMain.querySelector('#mobile-total').textContent = mobileCount;
+          extensionMain.querySelector('#mobile-percent').textContent = formatPercent(mobilePercent);
+          extensionMain.querySelector('#other-total').textContent = otherCount;
+          extensionMain.querySelector('#other-percent').textContent = formatPercent(otherCount / distributionTotal * 100);
+
+          const deadlineTotal = Math.max(1, Number(summary.overdue_cryptage || 0) + Number(summary.approaching_cryptage || 0) + validCount);
+          const overduePercent = Number(summary.overdue_cryptage || 0) / deadlineTotal * 100;
+          const approachingPercent = Number(summary.approaching_cryptage || 0) / deadlineTotal * 100;
+          const validPercent = validCount / deadlineTotal * 100;
+          extensionMain.querySelector('#deadline-overdue').style.width = overduePercent + '%';
+          extensionMain.querySelector('#deadline-soon').style.width = approachingPercent + '%';
+          extensionMain.querySelector('#deadline-valid').style.width = validPercent + '%';
+          extensionMain.querySelector('#deadline-overdue-value').textContent = summary.overdue_cryptage || 0;
+          extensionMain.querySelector('#deadline-soon-value').textContent = summary.approaching_cryptage || 0;
+          extensionMain.querySelector('#deadline-valid-value').textContent = validCount;
           extensionMain.querySelectorAll('[data-dashboard-filter]').forEach(button => {
             button.classList.toggle('active', button.dataset.dashboardFilter === dashboardFilter);
           });
@@ -1614,37 +2530,121 @@
           extensionMain.querySelectorAll('[data-dashboard-panel]').forEach(panel => {
             panel.hidden = panel.dataset.dashboardPanel !== dashboardSection;
           });
-          fillOperationList('dashboard-filter-list', selected.items, selected.label, selected.upcoming);
+          const typeToolbar = extensionMain.querySelector('#dolphi-device-type-toolbar');
+          if (typeToolbar) typeToolbar.hidden = dashboardSection !== 'cryptage';
+          extensionMain.querySelectorAll('[data-dashboard-device-type]').forEach(button => {
+            const active = button.dataset.dashboardDeviceType === dashboardDeviceType;
+            button.classList.toggle('active', active);
+            button.setAttribute('aria-pressed', active ? 'true' : 'false');
+          });
+          fillOperationList('dashboard-filter-list', selectedItems, selected.label, selected.upcoming);
+        }
+
+        function exportDashboardCsv() {
+          if (!dashboardCurrentItems.length) return;
+          const rows = [['Numéro de série', 'Type', 'CIS', 'Affectation', 'Modèle', 'Date limite', 'Délai']];
+          dashboardCurrentItems.forEach(item => {
+            const delay = item.days_remaining != null ? item.days_remaining + ' jours restants' : item.days_overdue + ' jours de retard';
+            rows.push([
+              item.num_serie || item.nom || '',
+              item.type || '',
+              item.cis || '',
+              item.affectation || item.emprunteur || '',
+              item.modele || '',
+              item.date_cle_a_faire || item.date_fin || '',
+              delay
+            ]);
+          });
+          const csv = '\ufeff' + rows.map(row => row.map(value => '"' + String(value).replace(/"/g, '""') + '"').join(';')).join('\r\n');
+          const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'dolphisic-dashboard-' + new Date().toISOString().slice(0, 10) + '.csv';
+          link.click();
+          URL.revokeObjectURL(url);
         }
 
         function renderDashboard() {
           extensionMain.innerHTML = `
             <div class="dolphi-dashboard-content">
-              <div class="dolphi-extension-header">
-                <div>
+              <div class="dolphi-dashboard-hero">
+                <div class="dolphi-dashboard-title">
                   <h1>Tableau de bord</h1>
-                  <p>Opérations prioritaires du parc réel.</p>
+                  <p>Vue d’ensemble de l’état du parc radio.</p>
                 </div>
+                <div class="dolphi-dashboard-tabs" role="tablist" aria-label="Type d'opérations">
+                  <button type="button" class="dolphi-dashboard-tab active" data-dashboard-section="cryptage" role="tab">${dashboardIcon('shield')}<span>Cryptage</span></button>
+                  <button type="button" class="dolphi-dashboard-tab" data-dashboard-section="loans" role="tab">${dashboardIcon('loans')}<span>Prêts</span></button>
+                </div>
+                <div class="dolphi-dashboard-updated">${dashboardIcon('calendar')}<div><span>Dernier cryptage enregistré</span><strong id="dashboard-updated-at">Chargement...</strong><small id="dashboard-updated-detail"></small></div></div>
               </div>
               <div id="dolphi-dashboard-feedback" class="dolphi-feedback">Chargement des opérations...</div>
-              <div class="dolphi-dashboard-tabs" role="tablist" aria-label="Type d'opérations">
-                <button type="button" class="dolphi-dashboard-tab active" data-dashboard-section="cryptage" role="tab">Cryptage</button>
-                <button type="button" class="dolphi-dashboard-tab" data-dashboard-section="loans" role="tab">Prêts</button>
+
+              <div class="dolphi-dashboard-kpis" data-dashboard-panel="cryptage">
+                <button type="button" class="dolphi-kpi-card active" data-dashboard-filter="overdue_cryptage">
+                  <span class="dolphi-kpi-icon dolphi-kpi-danger">${dashboardIcon('shield')}</span>
+                  <span class="dolphi-kpi-copy"><span>Cryptages dépassés</span><strong id="cryptage-count">0</strong><small>À traiter immédiatement</small></span>
+                </button>
+                <button type="button" class="dolphi-kpi-card" data-dashboard-filter="approaching_cryptage">
+                  <span class="dolphi-kpi-icon dolphi-kpi-warning">${dashboardIcon('clock')}</span>
+                  <span class="dolphi-kpi-copy"><span>Sous 30 jours</span><strong id="approaching-count">0</strong><small>À traiter prochainement</small></span>
+                </button>
+                <button type="button" class="dolphi-kpi-card" data-dashboard-filter="hidden_devices">
+                  <span class="dolphi-kpi-icon dolphi-kpi-muted">${dashboardIcon('eye-off')}</span>
+                  <span class="dolphi-kpi-copy"><span>Appareils masqués</span><strong id="hidden-count">0</strong><small>Gérer les exclusions</small></span>
+                </button>
               </div>
-              <div class="dolphi-dashboard-panel" data-dashboard-panel="cryptage">
-                <div class="dolphi-summary-grid">
-                  <button type="button" class="dolphi-summary-card active" data-dashboard-filter="overdue_cryptage"><span>Cryptages dépassés</span><strong id="cryptage-count">0</strong></button>
-                  <button type="button" class="dolphi-summary-card" data-dashboard-filter="approaching_cryptage"><span>Sous 30 jours</span><strong id="approaching-count">0</strong></button>
+
+              <div class="dolphi-dashboard-analytics" data-dashboard-panel="cryptage">
+                <section class="dolphi-analytics-panel">
+                  <div class="dolphi-analytics-heading"><h2>Répartition par type d’appareil</h2></div>
+                  <div class="dolphi-type-overview">
+                    <div id="dashboard-type-donut" class="dolphi-type-donut" aria-label="Répartition des appareils"></div>
+                    <div class="dolphi-type-legend">
+                      <div class="dolphi-type-legend-row"><span class="dolphi-type-legend-swatch" style="background:#38bdf8"></span><div><strong>Portatifs</strong><small>Appareils portatifs</small></div><div><strong id="portable-total">0</strong><small id="portable-percent">0%</small></div></div>
+                      <div class="dolphi-type-legend-row"><span class="dolphi-type-legend-swatch" style="background:#f59e0b"></span><div><strong>Mobiles</strong><small>Radios mobiles embarquées</small></div><div><strong id="mobile-total">0</strong><small id="mobile-percent">0%</small></div></div>
+                      <div class="dolphi-type-legend-row"><span class="dolphi-type-legend-swatch" style="background:#fb7185"></span><div><strong>Autres</strong><small>Autres équipements suivis</small></div><div><strong id="other-total">0</strong><small id="other-percent">0%</small></div></div>
+                    </div>
+                  </div>
+                </section>
+                <section class="dolphi-analytics-panel">
+                  <div class="dolphi-analytics-heading"><h2>Échéances de cryptage</h2></div>
+                  <div class="dolphi-deadline-bar" aria-label="Répartition des échéances"><span id="deadline-overdue" class="dolphi-deadline-overdue"></span><span id="deadline-soon" class="dolphi-deadline-soon"></span><span id="deadline-valid" class="dolphi-deadline-valid"></span></div>
+                  <div class="dolphi-deadline-legend">
+                    <div class="dolphi-deadline-stat"><span style="color:#fb7185">Échéance dépassée</span><strong id="deadline-overdue-value">0</strong><small>équipements à traiter</small></div>
+                    <div class="dolphi-deadline-stat"><span style="color:#f59e0b">De 0 à 30 jours</span><strong id="deadline-soon-value">0</strong><small>équipements à anticiper</small></div>
+                    <div class="dolphi-deadline-stat"><span style="color:#10b981">Après 30 jours</span><strong id="deadline-valid-value">0</strong><small>équipements sans urgence</small></div>
+                  </div>
+                </section>
+              </div>
+
+              <div class="dolphi-dashboard-kpis" data-dashboard-panel="loans" hidden>
+                <button type="button" class="dolphi-kpi-card active" data-dashboard-filter="overdue_loans">
+                  <span class="dolphi-kpi-icon dolphi-kpi-danger">${dashboardIcon('clock')}</span>
+                  <span class="dolphi-kpi-copy"><span>Prêts en retard</span><strong id="loan-count">0</strong><small>Retours à régulariser</small></span>
+                </button>
+              </div>
+
+              <section class="dolphi-dashboard-table-panel">
+                <div class="dolphi-dashboard-table-toolbar">
+                  <div class="dolphi-dashboard-table-title"><h2 id="dashboard-filter-title">Cryptages dépassés</h2><span id="dashboard-filter-badge" class="badge">0</span></div>
+                  <div class="dolphi-dashboard-table-actions">
+                    <div id="dolphi-device-type-toolbar" class="dolphi-device-type-toolbar">
+                      <div class="dolphi-device-type-filters" role="group" aria-label="Filtrer par type d'appareil">
+                        <button type="button" class="dolphi-device-type-filter active" data-dashboard-device-type="ALL" aria-pressed="true">Tous</button>
+                        <button type="button" class="dolphi-device-type-filter" data-dashboard-device-type="MOBILE" aria-pressed="false">${deviceTypeIcon('MOBILE')}<span>Mobiles</span></button>
+                        <button type="button" class="dolphi-device-type-filter" data-dashboard-device-type="PORTATIF" aria-pressed="false">${deviceTypeIcon('PORTATIF')}<span>Portatifs</span></button>
+                      </div>
+                    </div>
+                    <button id="dolphi-export-dashboard" type="button" class="btn btn-outline dolphi-export-button">${dashboardIcon('download')}<span>Exporter</span></button>
+                  </div>
                 </div>
-              </div>
-              <div class="dolphi-dashboard-panel dolphi-dashboard-panel-loans" data-dashboard-panel="loans" hidden>
-                <div class="dolphi-summary-grid">
-                  <button type="button" class="dolphi-summary-card" data-dashboard-filter="overdue_loans"><span>Prêts en retard</span><strong id="loan-count">0</strong></button>
+                <div class="dolphi-dashboard-table-wrap">
+                  <table class="dolphi-dashboard-table">
+                    <thead><tr><th>Appareil</th><th>Type</th><th>Affectation</th><th>Date limite</th><th>Retard</th><th class="dolphi-dashboard-row-actions">Actions</th></tr></thead>
+                    <tbody id="dashboard-filter-list"></tbody>
+                  </table>
                 </div>
-              </div>
-              <section class="dolphi-section">
-                <div class="dolphi-section-heading"><h2 id="dashboard-filter-title">Cryptages dépassés</h2><span id="dashboard-filter-badge" class="badge">0</span></div>
-                <div id="dashboard-filter-list" class="dolphi-operation-list"></div>
               </section>
             </div>`;
           extensionMain.querySelectorAll('[data-dashboard-section]').forEach(button => {
@@ -1661,6 +2661,13 @@
               updateDashboardFilter();
             });
           });
+          extensionMain.querySelectorAll('[data-dashboard-device-type]').forEach(button => {
+            button.addEventListener('click', () => {
+              dashboardDeviceType = button.dataset.dashboardDeviceType;
+              updateDashboardFilter();
+            });
+          });
+          extensionMain.querySelector('#dolphi-export-dashboard').addEventListener('click', exportDashboardCsv);
           if (dashboardData) updateDashboardFilter();
           loadDashboard();
         }

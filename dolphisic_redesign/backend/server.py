@@ -1,5 +1,20 @@
 import os
 import sys
+
+def load_env():
+    env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+    if os.path.exists(env_path):
+        try:
+            with open(env_path, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        key, val = line.split('=', 1)
+                        os.environ[key.strip()] = val.strip()
+        except Exception:
+            pass
+
+load_env()
 import sqlite3
 import hashlib
 import json
@@ -111,6 +126,7 @@ CORS(app)
 # Settings file for notifications
 BASE_DIR = SERVER_DIR
 SETTINGS_FILE = os.path.join(BASE_DIR, "notification_settings.json")
+CRYPTAGE_ACTIVITY_FILE = os.path.join(BASE_DIR, "cryptage_activity.json")
 
 DEFAULT_NOTIFICATION_SETTINGS = {
     "global_notification_enabled": False,
@@ -186,6 +202,12 @@ def init_db():
             date_rendu TEXT,
             changement_etat TEXT,
             FOREIGN KEY(stock_id) REFERENCES stock(id)
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS dashboard_hidden_devices (
+            device_id INTEGER PRIMARY KEY,
+            hidden_at TEXT NOT NULL
         )
     """)
     # Migration to add new columns if they don't exist
@@ -313,6 +335,32 @@ def save_notification_settings(data):
     return current
 
 
+def load_cryptage_activity():
+    if not os.path.exists(CRYPTAGE_ACTIVITY_FILE):
+        return None
+    try:
+        with open(CRYPTAGE_ACTIVITY_FILE, 'r', encoding='utf-8') as activity_file:
+            activity = json.load(activity_file)
+        return activity if isinstance(activity, dict) else None
+    except (OSError, ValueError) as exc:
+        log_logic(f"Unable to read cryptage activity: {exc}")
+        return None
+
+
+def record_cryptage_activity(device_count):
+    activity = {
+        'updated_at': datetime.now().isoformat(timespec='seconds'),
+        'device_count': int(device_count)
+    }
+    try:
+        with open(CRYPTAGE_ACTIVITY_FILE, 'w', encoding='utf-8') as activity_file:
+            json.dump(activity, activity_file, indent=2, ensure_ascii=False)
+    except OSError as exc:
+        log_logic(f"Unable to record cryptage activity: {exc}")
+        return None
+    return activity
+
+
 def parse_date_value(value):
     if not value:
         return None
@@ -332,19 +380,32 @@ def collect_urgent_operations():
                p.date_maj_cle, p.date_cle_a_faire, m.type
         FROM parc p
         LEFT JOIN materiel m ON TRIM(p.modele) = TRIM(m.modele)
-        WHERE UPPER(TRIM(COALESCE(p.cis, ''))) != 'TEST'
+        WHERE UPPER(TRIM(COALESCE(p.cis, ''))) NOT IN ('TEST', 'PERDU', 'REFORME', 'RÉFORME')
           AND UPPER(TRIM(COALESCE(m.type, ''))) NOT IN ('BIP', 'BIPS')
           AND p.date_cle_a_faire IS NOT NULL
           AND TRIM(p.date_cle_a_faire) != ''
+          AND NOT EXISTS (
+              SELECT 1
+              FROM dashboard_hidden_devices hidden
+              WHERE hidden.device_id = p.rowid
+          )
     """)
 
     overdue_cryptage = []
     approaching_cryptage = []
+    up_to_date_cryptage = 0
+    type_distribution = {}
+    latest_historical_cryptage_date = None
     for row in equipment_rows:
         item = dict(row)
+        update_date = parse_date_value(item.get('date_maj_cle'))
+        if update_date and update_date <= today and (latest_historical_cryptage_date is None or update_date > latest_historical_cryptage_date):
+            latest_historical_cryptage_date = update_date
         due_date = parse_date_value(item.get('date_cle_a_faire'))
         if not due_date:
             continue
+        equipment_type = str(item.get('type') or 'AUTRE').strip().upper()
+        type_distribution[equipment_type] = type_distribution.get(equipment_type, 0) + 1
         delta_days = (due_date - today).days
         item['days_delta'] = delta_days
         if delta_days < 0:
@@ -353,6 +414,8 @@ def collect_urgent_operations():
         elif delta_days <= 30:
             item['days_remaining'] = delta_days
             approaching_cryptage.append(item)
+        else:
+            up_to_date_cryptage += 1
 
     loan_rows = query_db(DB_SDIS, """
         SELECT p.id, p.stock_id, p.emprunteur, p.date_debut, p.date_fin,
@@ -373,18 +436,57 @@ def collect_urgent_operations():
     overdue_cryptage.sort(key=lambda item: item['days_overdue'], reverse=True)
     approaching_cryptage.sort(key=lambda item: item['days_remaining'])
     overdue_loans.sort(key=lambda item: item['days_overdue'], reverse=True)
+    cryptage_activity = load_cryptage_activity()
     return {
         'generated_at': datetime.now().isoformat(timespec='seconds'),
+        'last_cryptage_update': cryptage_activity or ({
+            'updated_at': latest_historical_cryptage_date.isoformat(),
+            'date_only': True
+        } if latest_historical_cryptage_date else None),
         'summary': {
             'overdue_cryptage': len(overdue_cryptage),
             'approaching_cryptage': len(approaching_cryptage),
+            'up_to_date_cryptage': up_to_date_cryptage,
+            'total_cryptage': sum(type_distribution.values()),
+            'type_distribution': type_distribution,
+            'hidden_devices': len(get_hidden_dashboard_devices()),
             'overdue_loans': len(overdue_loans),
             'total_urgent': len(overdue_cryptage) + len(overdue_loans)
         },
         'overdue_cryptage': overdue_cryptage,
         'approaching_cryptage': approaching_cryptage,
-        'overdue_loans': overdue_loans
+        'overdue_loans': overdue_loans,
+        'hidden_devices': get_hidden_dashboard_devices()
     }
+
+
+def get_hidden_dashboard_devices():
+    rows = query_db(DB_SDIS, """
+        SELECT p.rowid AS id, p.num_serie, p.modele, p.cis, p.affectation,
+               p.date_maj_cle, p.date_cle_a_faire, m.type, hidden.hidden_at
+        FROM dashboard_hidden_devices hidden
+        JOIN parc p ON p.rowid = hidden.device_id
+        LEFT JOIN materiel m ON TRIM(p.modele) = TRIM(m.modele)
+        WHERE UPPER(TRIM(COALESCE(p.cis, ''))) NOT IN ('TEST', 'PERDU', 'REFORME', 'RÉFORME')
+          AND UPPER(TRIM(COALESCE(m.type, ''))) NOT IN ('BIP', 'BIPS')
+          AND p.date_cle_a_faire IS NOT NULL
+          AND TRIM(p.date_cle_a_faire) != ''
+        ORDER BY hidden.hidden_at DESC
+    """)
+    today = datetime.now().date()
+    results = []
+    for row in rows:
+        item = dict(row)
+        due_date = parse_date_value(item.get('date_cle_a_faire'))
+        if due_date:
+            delta_days = (due_date - today).days
+            item['days_delta'] = delta_days
+            if delta_days < 0:
+                item['days_overdue'] = abs(delta_days)
+            else:
+                item['days_remaining'] = delta_days
+        results.append(item)
+    return results
 
 
 # --- LOGGING SYSTEM MIDDLEWARES & ENDPOINT ---
@@ -596,6 +698,7 @@ def update_device_cryptage(rowid):
     try:
         query_db(DB_SDIS, "UPDATE parc SET date_maj_cle = ?, date_cle_a_faire = ?, notification_active = 0, email_notif = NULL WHERE rowid = ?", 
                  (date_maj, date_a_faire, rowid), commit=True)
+        record_cryptage_activity(1)
         log_logic(f"Device ID={rowid} encryption updated. Next key date: {date_a_faire}")
         return jsonify({'success': True, 'message': 'Dates de chiffrement mises à jour avec succès', 'date_cle_a_faire': date_a_faire})
     except Exception as e:
@@ -606,6 +709,7 @@ def update_device_cryptage(rowid):
 def delete_device(rowid):
     log_logic(f"Deleting Device ID={rowid}")
     try:
+        query_db(DB_SDIS, "DELETE FROM dashboard_hidden_devices WHERE device_id = ?", (rowid,), commit=True)
         query_db(DB_SDIS, "DELETE FROM parc WHERE rowid = ?", (rowid,), commit=True)
         log_logic(f"Device ID={rowid} deleted successfully")
         return jsonify({'success': True, 'message': 'Équipement supprimé avec succès'})
@@ -641,6 +745,12 @@ def bulk_update_device_cryptage():
     try:
         query_db(
             DB_SDIS,
+            f"DELETE FROM dashboard_hidden_devices WHERE device_id IN ({placeholders})",
+            tuple(device_ids),
+            commit=True
+        )
+        query_db(
+            DB_SDIS,
             f"""
             UPDATE parc
             SET date_maj_cle = ?, date_cle_a_faire = ?,
@@ -650,6 +760,7 @@ def bulk_update_device_cryptage():
             (date_maj, date_a_faire, *device_ids),
             commit=True
         )
+        record_cryptage_activity(len(device_ids))
         log_logic(f"Bulk cryptage update | Count={len(device_ids)} | Date={date_maj}")
         return jsonify({
             'success': True,
@@ -726,6 +837,8 @@ def add_device():
         new_rowid = query_db(DB_SDIS, query, 
                              (cis, modele, num_serie, affectation, version_logiciel, observation, date_maj_cle, date_cle_a_faire, date_prog), 
                              commit=True)
+        if date_maj_cle:
+            record_cryptage_activity(1)
         log_logic(f"Device added successfully (ID: {new_rowid}, Next Key Date: {date_cle_a_faire})")
         return jsonify({'success': True, 'id': new_rowid, 'message': 'Équipement ajouté au parc avec succès', 'date_cle_a_faire': date_cle_a_faire})
     except Exception as e:
@@ -757,17 +870,114 @@ def handle_notification_settings():
         return jsonify({'error': str(e)}), 500
 
 
+def send_test_email(recipient):
+    import smtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+
+    smtp_host = "smtp-relay.brevo.com"
+    smtp_port = 587
+    smtp_user = "afb5b1001@smtp-brevo.com"
+    smtp_password = os.environ.get("SMTP_PASSWORD")
+    if not smtp_password:
+        raise ValueError("SMTP_PASSWORD non configuré dans l'environnement ou le fichier .env")
+    smtp_from = "dolphisic@outlook.fr"
+
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = "Dolphisic - Test du système de notification email"
+    msg['From'] = f"Dolphisic SDIS 04 <{smtp_from}>"
+    msg['To'] = recipient
+
+    text = (
+        "Bonjour,\n\n"
+        "Ceci est un email de test envoyé depuis votre application Dolphisic.\n"
+        "Le système de notification par email est désormais fonctionnel.\n\n"
+        "Cordialement,\n"
+        "L'équipe SDIS 04"
+    )
+    
+    html = f"""
+    <html>
+      <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f5f7; margin: 0; padding: 20px; color: #333333;">
+        <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e1e4e8;">
+          <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 30px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600; letter-spacing: 0.5px;">DOLPHISIC</h1>
+            <p style="color: #94a3b8; margin: 5px 0 0 0; font-size: 14px;">Système de gestion et d'alertes du parc radio</p>
+          </div>
+          <div style="padding: 30px; line-height: 1.6;">
+            <h2 style="color: #0f172a; margin-top: 0; font-size: 18px; font-weight: 600;">Test de notification réussi !</h2>
+            <p style="color: #475569;">Bonjour,</p>
+            <p style="color: #475569;">Vous recevez ce message car vous avez cliqué sur le bouton de test d'envoi d'email dans les paramètres de <strong>Dolphisic</strong>.</p>
+            <div style="background-color: #f8fafc; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0; border-radius: 0 4px 4px 0;">
+              <p style="margin: 0; font-size: 14px; color: #1e293b;">
+                <strong>Configuration SMTP Brevo :</strong><br>
+                Hôte : <code>{smtp_host}</code><br>
+                Port : <code>{smtp_port}</code><br>
+                Utilisateur : <code>{smtp_user}</code><br>
+                Expéditeur : <code>{smtp_from}</code>
+              </p>
+            </div>
+            <p style="color: #475569;">Le système d'envoi d'email est correctement configuré et prêt à vous notifier lors des prochaines échéances de cryptage ou de retour de prêt.</p>
+            <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0;">
+            <p style="color: #64748b; font-size: 12px; text-align: center; margin: 0;">
+              Ceci est un message automatique, merci de ne pas y répondre.<br>
+              &copy; {datetime.now().year} SDIS 04 - Tous droits réservés.
+            </p>
+          </div>
+        </div>
+      </body>
+    </html>
+    """
+
+    part1 = MIMEText(text, 'plain', 'utf-8')
+    part2 = MIMEText(html, 'html', 'utf-8')
+
+    msg.attach(part1)
+    msg.attach(part2)
+
+    log_logic(f"Connecting to SMTP host {smtp_host}:{smtp_port}...")
+    server = smtplib.SMTP(smtp_host, smtp_port, timeout=15)
+    
+    log_logic("Sending EHLO...")
+    server.ehlo()
+    
+    log_logic("Starting TLS secure channel...")
+    server.starttls()
+    
+    log_logic("Sending EHLO after TLS...")
+    server.ehlo()
+    
+    log_logic(f"Logging in as SMTP user: {smtp_user}...")
+    server.login(smtp_user, smtp_password)
+    log_logic("SMTP login OK")
+    
+    log_logic(f"Sending email from {smtp_from} to {recipient}...")
+    response = server.sendmail(smtp_from, recipient, msg.as_string())
+    log_logic(f"SMTP sendmail response: {response if response else '250 OK (Email accepted for delivery)'}")
+    
+    log_logic("Closing SMTP connection...")
+    server.quit()
+    log_logic("Email sent successfully and connection closed.")
+
+
 @app.route('/api/notifications/send', methods=['POST'])
-def send_notification_placeholder():
+def send_notification():
     settings = load_notification_settings()
     recipient = (request.json or {}).get('email') or settings.get('email_notif')
     if not recipient:
         return jsonify({'error': 'Adresse email destinataire requise'}), 400
-    log_logic(f"Email send requested for recipient: {recipient} (provider not configured)")
-    return jsonify({
-        'success': False,
-        'message': "Bouton prêt. Configuration d'envoi à compléter."
-    })
+    
+    log_logic(f"Email send requested for recipient: {recipient} using Brevo SMTP")
+    try:
+        send_test_email(recipient)
+        log_logic(f"Test email successfully sent to {recipient}")
+        return jsonify({
+            'success': True,
+            'message': f"Email de test envoyé avec succès à {recipient} !"
+        })
+    except Exception as e:
+        log_logic(f"Failed to send test email to {recipient}: {str(e)}")
+        return jsonify({'error': f"Échec de l'envoi de l'email : {str(e)}"}), 500
 
 @app.route('/api/devices/<int:rowid>/toggle-notification', methods=['POST'])
 def toggle_device_notification(rowid):
@@ -882,6 +1092,55 @@ def get_urgent_dashboard():
         return jsonify(collect_urgent_operations())
     except Exception as e:
         log_logic(f"Failed to load urgent dashboard: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/dashboard/hidden-devices', methods=['GET'])
+def get_dashboard_hidden_devices():
+    try:
+        return jsonify(get_hidden_dashboard_devices())
+    except Exception as e:
+        log_logic(f"Failed to load hidden dashboard devices: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/dashboard/devices/<int:rowid>/hide', methods=['POST'])
+def hide_dashboard_device(rowid):
+    try:
+        device = query_db(DB_SDIS, """
+            SELECT p.rowid AS id, p.num_serie, p.cis, m.type
+            FROM parc p
+            LEFT JOIN materiel m ON TRIM(p.modele) = TRIM(m.modele)
+            WHERE p.rowid = ?
+        """, (rowid,), one=True)
+        if not device:
+            return jsonify({'error': 'Équipement introuvable'}), 404
+        query_db(
+            DB_SDIS,
+            "INSERT OR REPLACE INTO dashboard_hidden_devices (device_id, hidden_at) VALUES (?, ?)",
+            (rowid, datetime.now().isoformat(timespec='seconds')),
+            commit=True
+        )
+        log_logic(f"Dashboard device hidden | ID={rowid} | Serial={device['num_serie']}")
+        return jsonify({'success': True})
+    except Exception as e:
+        log_logic(f"Failed to hide dashboard device {rowid}: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/dashboard/devices/<int:rowid>/restore', methods=['POST'])
+def restore_dashboard_device(rowid):
+    try:
+        query_db(
+            DB_SDIS,
+            "DELETE FROM dashboard_hidden_devices WHERE device_id = ?",
+            (rowid,),
+            commit=True
+        )
+        log_logic(f"Dashboard device restored | ID={rowid}")
+        return jsonify({'success': True})
+    except Exception as e:
+        log_logic(f"Failed to restore dashboard device {rowid}: {e}")
         return jsonify({'error': str(e)}), 500
 
 
