@@ -6,3 +6,5 @@ backend/logs/
 backend/notification_settings.json
 backend/.env
 .env
+.env
+*.env
