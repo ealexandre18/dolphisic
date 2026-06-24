@@ -29,6 +29,7 @@ const menus: IMenu[] = [
   },
   { id: 3, title: 'Cartographie', url: '#carto' },
   { id: 4, title: 'Stock SDIS04', url: '#stock' },
+  { id: 6, title: 'Notifications', url: '#notifications' },
   { id: 5, title: 'Paramètres', url: '#settings' },
 ];
 
@@ -39,6 +40,7 @@ const viewIds: Record<string, string> = {
   '#stats': 'stats',
   '#carto': 'carto',
   '#stock': 'stock',
+  '#notifications': 'notifications',
   '#settings': 'settings',
 };
 
@@ -49,6 +51,7 @@ const viewLabels: Record<string, string> = {
   '#stats': 'Statistiques',
   '#carto': 'Cartographie',
   '#stock': 'Stock SDIS04',
+  '#notifications': 'Notifications',
   '#settings': 'Paramètres',
 };
 
@@ -135,7 +138,7 @@ export default function Home() {
       }
 
       // 2. Direct call fallback to the state setter
-      if (iframeWindow && typeof iframeWindow.setLegacyPage === 'function' && viewId !== 'dashboard' && viewId !== 'settings') {
+      if (iframeWindow && typeof iframeWindow.setLegacyPage === 'function' && viewId !== 'dashboard' && viewId !== 'settings' && viewId !== 'notifications') {
         iframeWindow.setLegacyPage(viewId);
         lastAppliedTab.current = tabUrl;
         return;
