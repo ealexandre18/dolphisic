@@ -97,3 +97,82 @@ Nous avons finalisé l'intégration du redesign en résolvant tous les points bl
 
 ### 5. Correction de l'Animation de Soulignement Rouge (Framer Motion)
 - Suppression d'un doublon de clé `layoutId="cursor"` présent sur le conteneur du sous-menu déroulant (dropdown) dans [navbar.tsx](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/dolphisic_redesign/components/ui/navbar.tsx), qui interférait avec Framer Motion et bloquait le rendu du trait rouge lors du survol de l'onglet "Parc matériel".
+
+---
+
+## 🎨 Simplification des KPI et Intégration Brevo (Dernières modifications)
+
+### 1. Retrait et Centrage des Cartes KPI du Tableau de bord
+- **Suppression des cartes** : Les deux blocs HTML correspondant aux KPI "Échéance après 30 jours" (id `#valid-count`) et "Équipements suivis" (id `#total-count`) ont été retirés de [index.html](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/dolphisic_redesign/public/legacy/index.html).
+- **Sécurisation JavaScript** : Les lignes JavaScript affectant le `textContent` de ces deux éléments ont été supprimées dans la fonction `updateDashboardFilter` pour éviter toute erreur de type `TypeError: Cannot set properties of null (setting 'textContent')`. Les variables de calcul ont été préservées pour ne pas altérer les indicateurs circulaires et barres d'échéances du bas de page.
+- **Centrage horizontal** : La classe `.dolphi-dashboard-kpis` a été ajustée pour n'occuper que 3 colonnes (`grid-template-columns: repeat(3, minmax(0, 360px))`) et est désormais parfaitement centrée sur la largeur de l'écran grâce à l'ajout de `justify-content: center` dans ses règles de style CSS.
+
+### 2. Activation du Système de Mail avec les configurations Brevo SMTP
+- **Client SMTP Python** : Intégration de la fonction `send_test_email` dans les deux fichiers serveurs backend : [dolphisic_redesign/backend/server.py](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/dolphisic_redesign/backend/server.py) et [server.py](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/server.py).
+- **Identifiants Brevo** : Configuration en STARTTLS (port 587) sur l'hôte `smtp-relay.brevo.com` avec l'adresse d'expédition et d'identification `afb5b1001@smtp-brevo.com`.
+- **Adresse d'expédition personnalisée** : Ajout de la configuration `smtp_from = "dolphisic@outlook.fr"` pour définir l'expéditeur de l'enveloppe SMTP et de l'en-tête `From:`.
+- **E-mail HTML Premium** : Lors du clic sur le bouton de test dans l'onglet **Paramètres**, l'application envoie un e-mail au format HTML stylisé reprenant la charte graphique de Dolphisic (dégradés sombres, typographie soignée, bloc d'information structuré).
+- **Validation** : Les tests d'envoi ont été validés avec succès via un script de test dédié, confirmant que le routage des notifications fonctionne.
+- **Débogage SMTP** : Intégration de traces logiques détaillées dans la console (`[LOGIC]`) pour chaque étape de l'envoi de mail (connexion, EHLO, STARTTLS, authentification SMTP, réponse de livraison du serveur 250 OK, déconnexion).
+- **Sécurisation par variable d'environnement** :
+  - Création de fonctions `load_env()` au démarrage de chaque serveur Python pour lire de manière transparente un fichier local `.env` sans dépendance externe.
+  - Remplacement du mot de passe en dur par un appel à `os.environ.get("SMTP_PASSWORD")` afin d'éviter tout blocage de type fuite de clé secrète par GitHub lors des `git push`.
+  - Ajout des fichiers locaux `.env` aux règles `.gitignore` du projet (à la racine et dans `dolphisic_redesign/`) afin de les exclure du suivi de version.
+
+### 3. Automatisation et Consolidation des Notifications d'Échéance
+- **Seeding d'équipements de test dynamiques** : Insertion et mise à jour automatique de 3 appareils sous le CIS `TEST` dans la base SQLite à chaque démarrage (1 expirant aujourd'hui, 2 expirant demain). Leurs dates d'échéances sont recalculées dynamiquement à la volée.
+- **Moteur d'analyse J et J-1** : Développement de la routine `check_and_send_notifications` qui balaie le parc à la recherche des cryptages arrivant à échéance le jour même (aujourd'hui) ou 1 jour à l'avance (demain).
+- **Consolidation par destinataire** : Si la notification générale est active, tous les appareils concernés du parc sont regroupés dans **un seul et unique e-mail récapitulatif** envoyé à l'adresse globale. De même pour les alertes d'équipements individuels, regroupées par destinataire pour éviter la réception d'e-mails séparés.
+- **Historique anti-doublon** : Suivi des envois dans `notification_history.json` pour garantir qu'aucune notification n'est renvoyée inutilement (par exemple suite à des redémarrages serveur).
+- **Planification en tâche de fond** : Démarrage d'un thread démon (`start_notification_scheduler`) qui effectue une vérification automatique au lancement puis toutes les 4 heures.
+- **Endpoint de déclenchement manuel** : Exposition de la route POST `/api/notifications/run-check` pour forcer manuellement la vérification, supportant également le paramètre `?force=true` pour contourner l'anti-doublon lors des phases de tests.
+- **Validation** : Les tests d'intégration complets ont validé que les 3 appareils de test (1 aujourd'hui et 2 demain) sont bien regroupés en un unique e-mail HTML premium et envoyés avec succès.
+
+### 4. Paramétrage et Déclenchement Immédiat
+- **Ajout de l'option dans l'interface** : Ajout d'un interrupteur (toggle switch) "Notification globale" dans la section Paramètres de l'application ([dolphisic_redesign/public/legacy/index.html](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/dolphisic_redesign/public/legacy/index.html) et [dist/index.html](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/dist/index.html)).
+- **Déclenchement instantané à la sauvegarde** : Dès que l'utilisateur active l'option dans ses paramètres et clique sur "Enregistrer", le serveur Python lance immédiatement une routine de vérification en tâche de fond. Si des appareils sont dépassés, pour aujourd'hui ou pour demain, l'utilisateur reçoit instantanément son rapport consolidé (sans attendre le déclenchement périodique du planificateur de 4h).
+
+---
+
+## 🔔 Nouveau Système de Notifications Relationnel et Menu Dédié (Dernières modifications)
+
+### 1. Structure de la Base de Données Relationnelle
+- Ajout de deux nouvelles tables SQLite dans `init_db()` sur les deux serveurs (`server.py` et `dolphisic_redesign/backend/server.py`) :
+  - `notification_emails` : Gère les destinataires e-mail et leurs configurations personnalisées (Global vs. Individuel, filtres J/J-1).
+  - `notification_email_devices` : Gère les associations manuelles d'appareils avec cascading.
+
+### 2. API REST CRUD et Moteur Mis à Jour
+- Implémentation complète de l'API de gestion des notifications (`/api/notifications/emails`, `/api/notifications/assign-device`, etc.).
+- Refonte du moteur de notification `check_and_send_notifications` pour s'adapter à la structure relationnelle et envoyer un rapport consolidé distinct à chaque destinataire.
+- Historique d'envoi anti-doublon indexé par destinataire, appareil, date et type.
+
+### 3. Interface Graphique et Routage
+- Création de la page **"Notifications"** (vue moderne à deux colonnes) à la place de l'ancienne option d'e-mail unique des Paramètres.
+- Intégration dans la barre de navigation Next.js.
+- Ajout du bouton d'association cloche (🔔) dans les colonnes Actions du tableau des équipements. Cliquer sur la cloche d'un appareil l'associe instantanément à l'e-mail actif en `localStorage`.
+
+### 4. Validation
+- Les tests d'intégration complets via script python ont validé que les rapports globaux et par appareil sont compilés de façon isolée et envoyés avec succès.
+
+---
+
+## 🛠️ Corrections et Améliorations Ergonomiques de la Page Notifications
+
+### 1. Résolution de l'Erreur de Sérialisation JSON
+- **Problème** : Lors de la navigation vers l'onglet "Notifications", le chargement des données échouait et affichait un message d'erreur rouge : `Erreur de chargement des emails: Object of type Row is not JSON serializable`. Ce bug survenait car les points d'accès API Flask renvoyaient directement des listes de lignes brutes de type `sqlite3.Row` (configuré via `row_factory`).
+- **Correction** : Les endpoints de l'API relationnelle de notifications ont été modifiés dans [server.py](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/server.py) et [dolphisic_redesign/backend/server.py](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/dolphisic_redesign/backend/server.py) pour transformer chaque ligne en dictionnaire Python (`dict(row)`) avant la sérialisation via `jsonify()`. Les routes corrigées incluent :
+  - `GET /api/notifications/emails`
+  - `GET /api/notifications/emails/<int:email_id>/devices`
+  - `GET /api/notifications/active-devices`
+
+### 2. Condensation et Alignement Graphique
+- **Problème** : La vue de notifications s'étirait sur toute la largeur de l'écran, ce qui rendait l'interface vide et peu ergonomique sur des écrans d'ordinateurs larges.
+- **Correction** :
+  - Ajout d'un conteneur principal `#dolphi-notifications-form` doté d'une largeur maximale de `1100px` et centré horizontalement avec des marges automatiques (`margin: 0 auto;`).
+  - Ajustement de la grille à deux colonnes pour équilibrer les proportions : la colonne de gauche (gestion et configuration) occupe désormais `1.15fr` et la colonne de droite (équipements assignés) occupe `0.85fr`, séparées par un espace (gap) plus net de `28px`.
+
+### 3. Ajustement des Espacements (Aération des Titres et Formulaires)
+- **Problème** : Le titre "Gestion des Destinataires" et les autres titres de section étaient trop collés aux éléments de formulaire (champs de saisie, tableaux, sélecteurs) à cause d'une règle globale `margin: 0;` sur les balises `h2`.
+- **Correction** : Injection de marges inférieures spécifiques inline sur les titres `h2` concernés dans les fichiers [dolphisic_redesign/public/legacy/index.html](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/dolphisic_redesign/public/legacy/index.html) et [dist/index.html](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/dist/index.html) :
+  - `margin-bottom: 16px` sous *Gestion des Destinataires* et *Sélectionnez une adresse pour la configurer* afin d'aérer les inputs.
+  - `margin-bottom: 8px` sous *Équipements sous Surveillance Individuelle* pour offrir une transition douce vers le paragraphe de description.

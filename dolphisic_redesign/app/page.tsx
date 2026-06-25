@@ -108,18 +108,51 @@ export default function Home() {
     setActiveTab(tabUrl);
   }, []);
 
-  // Poll login state from localStorage (shares origin with the iframe)
-  useEffect(() => {
-    const checkLogin = () => {
-      if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('cryptis_token') || sessionStorage.getItem('cryptis_token');
-        setIsLoggedIn(!!token);
+  const [iframeSettled, setIframeSettled] = useState(false);
+
+  const checkLoginState = useCallback(() => {
+    if (typeof window === 'undefined') return;
+
+    const token = localStorage.getItem('cryptis_token') || sessionStorage.getItem('cryptis_token');
+
+    // No token → not logged in
+    if (!token) {
+      setIsLoggedIn(false);
+      return;
+    }
+
+    // Token exists – check if iframe is still showing the login form
+    try {
+      const doc = frameRef.current?.contentDocument;
+      if (doc) {
+        const hasLoginForm =
+          doc.querySelector('input[type="password"]') !== null ||
+          Array.from(doc.querySelectorAll('button')).some(btn => {
+            const text = (btn.textContent || '').trim().toLowerCase();
+            return text.includes("s'authentifier");
+          });
+        if (hasLoginForm) {
+          // Login form visible → don't show navbar (but do NOT remove the token!)
+          setIsLoggedIn(false);
+          return;
+        }
       }
-    };
-    checkLogin();
-    const interval = setInterval(checkLogin, 500);
-    return () => clearInterval(interval);
+    } catch {
+      // cross-origin – ignore
+    }
+
+    // Token exists and no login form visible → logged in
+    setIsLoggedIn(true);
   }, []);
+
+  // Only start polling AFTER the iframe has settled (React inside needs time to read
+  // localStorage via useEffect and re-render from login-form → dashboard)
+  useEffect(() => {
+    if (!iframeSettled) return;
+    checkLoginState();
+    const interval = setInterval(checkLoginState, 500);
+    return () => clearInterval(interval);
+  }, [iframeSettled, checkLoginState]);
 
   const navigateIframe = useCallback((tabUrl: string) => {
     try {
@@ -220,7 +253,11 @@ export default function Home() {
         className="redesign-frame"
         onLoad={() => {
           lastAppliedTab.current = '';
-          navigateIframe(activeTab);
+          // Give the React app inside 1.5s to read localStorage and re-render
+          setTimeout(() => {
+            setIframeSettled(true);
+            navigateIframe(activeTab);
+          }, 1500);
         }}
       />
     </main>

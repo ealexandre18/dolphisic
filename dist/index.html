@@ -7,6 +7,9 @@
     <meta name="description" content="DolphiSIC - Gestion du parc matériel radio et cartographie opérationnelle du SDIS 04" />
     <title>DolphiSIC - SDIS 04</title>
     <style>
+      button[title="Ajouter un Texte Libre"] {
+        display: none !important;
+      }
       .dolphisic-cookie-banner {
         position: fixed;
         left: 24px;
@@ -415,6 +418,53 @@
         .dolphi-settings-grid {
           grid-template-columns: 1fr;
         }
+      }
+
+      .dolphi-notif-layout {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 28px;
+        margin-top: 20px;
+        width: 100%;
+      }
+
+      .dolphi-notif-column {
+        min-width: 0;
+      }
+
+      .dolphi-notif-column .dolphi-dashboard-table {
+        min-width: auto;
+        width: 100%;
+      }
+
+      @media (max-width: 960px) {
+        .dolphi-notif-layout {
+          grid-template-columns: 1fr;
+          gap: 20px;
+        }
+      }
+
+      select.dolphi-select, input.dolphi-input {
+        width: 100%;
+        min-height: 40px;
+        padding: 8px 12px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-main);
+        font-family: inherit;
+        font-size: 0.9rem;
+        outline: none;
+        box-sizing: border-box;
+        text-transform: none !important;
+      }
+      select.dolphi-select:focus, input.dolphi-input:focus {
+        border-color: var(--primary);
+      }
+      select.dolphi-select option {
+        background-color: #1e293b;
+        color: #f8fafc;
+        text-transform: none !important;
       }
     </style>
     <script>
@@ -1140,6 +1190,7 @@
         let activeView = null;
         let dashboardButton = null;
         let settingsButton = null;
+        let notifNavBtn = null;
         let dashboardData = null;
         let dashboardFilter = 'overdue_cryptage';
         let pendingDeviceNavigation = null;
@@ -1192,8 +1243,10 @@
           if (extensionMain) extensionMain.style.display = 'block';
           setCustomActive(dashboardButton, view === 'dashboard');
           setCustomActive(settingsButton, view === 'settings');
+          setCustomActive(notifNavBtn, view === 'notifications');
           if (view === 'dashboard') renderDashboard();
           if (view === 'settings') renderSettings();
+          if (view === 'notifications') renderNotifications();
         }
 
         function normalizedText(value) {
@@ -1251,7 +1304,7 @@
               return;
             }
             const typeLabels = {
-              BIP: 'Bips Pager',
+              BIP: 'BIPs',
               PORTATIF: 'Portatifs',
               MOBILE: 'Mobiles Véhicule',
               INFRA: 'Infrastructures',
@@ -1473,7 +1526,10 @@
         }
 
         function settingsPayload(form) {
-          return { email_notif: form.elements.email_notif.value.trim() };
+          return {
+            email_notif: form.elements.email_notif.value.trim(),
+            global_notification_enabled: form.elements.global_notification_enabled.checked
+          };
         }
 
         function showSettingsFeedback(message, error) {
@@ -1509,53 +1565,539 @@
           }
         }
 
-        async function loadSettings() {
-          try {
-            const settings = await fetchJson('/api/notifications/settings');
-            const form = extensionMain.querySelector('#dolphi-settings-form');
-            form.elements.email_notif.value = settings.email_notif || '';
-          } catch (error) {
-            showSettingsFeedback(error.message, true);
-          }
-        }
-
         function renderSettings() {
           const originalThemeButton = document.querySelector('button[title="Changer le thème"]');
           const darkMode = !document.documentElement.classList.contains('light');
           extensionMain.innerHTML = `
-            <form id="dolphi-settings-form">
-              <div class="dolphi-extension-header">
-                <div><h1>Paramètres</h1><p>Apparence et adresse email destinataire.</p></div>
-                <button type="submit" class="btn btn-primary">Enregistrer</button>
-              </div>
-              <div id="dolphi-settings-feedback" class="dolphi-feedback" hidden></div>
-              <section class="dolphi-section">
-                <h2>Apparence</h2>
-                <div class="dolphi-setting-row">
-                  <div><strong>Thème de l'interface</strong><div class="dolphi-muted">${darkMode ? 'Mode sombre actif' : 'Mode clair actif'}</div></div>
-                  <button id="dolphi-theme-toggle" type="button" class="btn btn-outline">${darkMode ? 'Passer au clair' : 'Passer au sombre'}</button>
+            <div id="dolphi-settings-form" style="width: 100%; max-width: 700px; margin: 0 auto; padding-bottom: 36px;">
+              <div class="dolphi-extension-header" style="margin-bottom: 24px;">
+                <div>
+                  <h1 style="font-size: 1.8rem; font-weight: 800; display: flex; align-items: center; gap: 10px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                    Paramètres
+                  </h1>
+                  <p class="dolphi-muted" style="margin-top: 4px;">Apparence et session.</p>
                 </div>
-              </section>
-              <section class="dolphi-section">
-                <h2>Email</h2>
-                <label class="dolphi-field" style="max-width:520px">Adresse destinataire
-                  <input id="email_notif" name="email_notif" type="email" placeholder="service@sdis04.fr">
-                </label>
-                <button id="dolphi-send-email" type="button" class="btn btn-outline" style="margin-top:16px">Envoyer un email</button>
-              </section>
-            </form>`;
+              </div>
+              
+              <div id="dolphi-settings-feedback" class="dolphi-feedback" hidden></div>
+              
+              <div style="display: flex; flex-direction: column; gap: 24px;">
+                <!-- APPARENCE CARD -->
+                <div class="dolphi-dashboard-table-panel" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+                  <h2 style="font-size: 1.15rem; font-weight: 700; margin: 0; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-palette"><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 14.7255 3.09032 17.1962 4.85857 19C5.03345 19.1749 5.09903 19.4322 5.03218 19.674C4.94589 19.986 4.89886 20.3093 4.89886 20.6409C4.89886 21.3915 5.50734 22 6.25799 22H12Z"/><circle cx="7.5" cy="10.5" r="1.5"/><circle cx="11.5" cy="7.5" r="1.5"/><circle cx="16.5" cy="9.5" r="1.5"/><circle cx="15.5" cy="14.5" r="1.5"/></svg>
+                    Apparence & Interface
+                  </h2>
+                  
+                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 12px 0;">
+                    <div style="display: flex; align-items: flex-start; gap: 12px;">
+                      <div style="margin-top: 2px; color: var(--text-muted);">
+                        ${darkMode ? 
+                          `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>` : 
+                          `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`
+                        }
+                      </div>
+                      <div>
+                        <strong style="display: block; font-size: 0.95rem;">Thème de l'interface</strong>
+                        <div class="dolphi-muted" style="font-size: 0.8rem; margin-top: 2px;">${darkMode ? 'Mode sombre actif' : 'Mode clair actif'}</div>
+                      </div>
+                    </div>
+                    <button id="dolphi-theme-toggle" type="button" class="btn btn-outline" style="min-width: 140px; justify-content: center;">
+                      ${darkMode ? 'Passer au clair' : 'Passer au sombre'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>`;
 
-          const form = extensionMain.querySelector('#dolphi-settings-form');
-          form.addEventListener('submit', event => {
-            event.preventDefault();
-            saveSettings().catch(error => showSettingsFeedback(error.message, true));
-          });
           extensionMain.querySelector('#dolphi-theme-toggle').addEventListener('click', () => {
             if (originalThemeButton) originalThemeButton.click();
             renderSettings();
           });
-          extensionMain.querySelector('#dolphi-send-email').addEventListener('click', sendConfiguredEmail);
-          loadSettings();
+        }
+
+        async function renderNotifications() {
+          extensionMain.innerHTML = `
+            <div id="dolphi-notifications-form" style="width: 100%; max-width: 1100px; margin: 0 auto; padding-bottom: 36px;">
+              <div class="dolphi-extension-header" style="margin-bottom: 20px;">
+                <div>
+                  <h1 style="font-size: 1.8rem; font-weight: 800; display: flex; align-items: center; gap: 10px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9m1.73 13a3 3 0 0 0 5.54 0"></path></svg>
+                    Alertes & Notifications
+                  </h1>
+                  <p class="dolphi-muted" style="margin-top: 4px;">Configurez les destinataires des alertes e-mail et attribuez manuellement des équipements.</p>
+                </div>
+              </div>
+              
+              <div id="dolphi-notif-feedback" class="dolphi-feedback" hidden></div>
+              
+              <div class="dolphi-notif-layout">
+                <!-- COLONNE GAUCHE: ADRESSES ET CONFIG -->
+                <div class="dolphi-notif-column" style="display: flex; flex-direction: column; gap: 24px;">
+                  <!-- GESTION DESTINATAIRES -->
+                  <div class="dolphi-dashboard-table-panel" style="padding: 24px; display: flex; flex-direction: column; gap: 18px;">
+                    <h2 style="font-size: 1.1rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                      Gestion des Destinataires
+                    </h2>
+                    
+                    <div style="display: flex; gap: 8px; margin-top: 4px;">
+                      <input id="new-email-input" type="email" placeholder="Ex: service.notif@sdis04.fr" class="dolphi-input" style="margin: 0; flex: 1; min-height: 38px;">
+                      <button id="add-email-btn" type="button" class="btn btn-primary" style="min-height: 38px;">Ajouter</button>
+                    </div>
+                    
+                    <div class="dolphi-dashboard-table-wrap" style="max-height: 220px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px;">
+                      <table class="dolphi-dashboard-table" style="min-width: auto; width: 100%;">
+                        <thead>
+                          <tr>
+                            <th>Destinataire</th>
+                            <th style="text-align: right; width: 60px;">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody id="emails-list-tbody">
+                          <tr><td colspan="2" style="text-align: center; color: var(--text-muted); padding: 20px;">Chargement des adresses...</td></tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  
+                  <!-- ZONE CONFIGURATION EMAIL SÉLECTIONNÉ -->
+                  <div id="email-config-section" class="dolphi-dashboard-table-panel" style="opacity: 0.5; pointer-events: none; padding: 24px; display: flex; flex-direction: column; gap: 18px;">
+                    <h2 id="config-title" style="font-size: 1.1rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sliders"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="2" x2="6" y1="14" y2="14"/><line x1="10" x2="14" y1="8" y2="8"/><line x1="18" x2="22" y1="16" y2="16"/></svg>
+                      Configuration
+                    </h2>
+                    
+                    <div id="config-controls" style="display: flex; flex-direction: column; gap: 16px; margin-top: 4px;">
+                      <label class="dolphi-setting-row" style="cursor: pointer; min-height: auto; padding: 4px 0; margin-bottom: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                        <div>
+                          <strong style="font-size: 0.95rem;">Activer les notifications</strong>
+                          <div class="dolphi-muted" style="font-size: 0.8rem; margin-top: 2px;">Activer ou désactiver l'envoi d'alertes pour ce destinataire.</div>
+                        </div>
+                        <input id="email-notif-enabled" type="checkbox" style="width: 20px; height: 20px; cursor: pointer;">
+                      </label>
+                      
+                      <div id="config-sub-settings" style="display: flex; flex-direction: column; gap: 16px;">
+                        <div class="dolphi-setting-row" style="min-height: auto; padding: 4px 0;">
+                          <div>
+                            <strong style="font-size: 0.95rem;">Mode de notification</strong>
+                            <div class="dolphi-muted" style="font-size: 0.8rem; margin-top: 2px;">Choisissez comment envoyer les alertes à cette adresse.</div>
+                          </div>
+                          <select id="email-notif-mode" class="dolphi-select" style="max-width: 200px; margin: 0; min-height: 36px;">
+                            <option value="global">Rapport Global</option>
+                            <option value="devices">Appareils spécifiques</option>
+                          </select>
+                        </div>
+                        
+                        <!-- CRITÈRES DE NOTIFICATION GLOBALE -->
+                        <div id="global-criteria-box" style="display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+                          <strong style="font-size: 0.9rem; display: block; margin-bottom: 2px;">Critères du rapport global</strong>
+                          <label class="dolphi-setting-row" style="cursor: pointer; min-height: auto; padding: 4px 0;">
+                            <div>
+                              <div style="font-size: 0.9rem;">1 jour à l'avance (J-1)</div>
+                              <div class="dolphi-muted" style="font-size: 0.78rem; margin-top: 2px;">Alerter la veille de l'échéance de cryptage.</div>
+                            </div>
+                            <input id="notif-j-minus-1" type="checkbox" style="width: 18px; height: 18px; cursor: pointer;">
+                          </label>
+                          <label class="dolphi-setting-row" style="cursor: pointer; min-height: auto; padding: 8px 0 4px 0; border-top: 1px solid rgba(255,255,255,0.05);">
+                            <div>
+                              <div style="font-size: 0.9rem;">Jour même (J)</div>
+                              <div class="dolphi-muted" style="font-size: 0.78rem; margin-top: 2px;">Alerter le jour exact de l'échéance de cryptage.</div>
+                            </div>
+                            <input id="notif-j" type="checkbox" style="width: 18px; height: 18px; cursor: pointer;">
+                          </label>
+                          <div class="dolphi-muted" style="font-size: 11px; margin-top: 4px; font-style: italic;">
+                            * Note : Les appareils déjà en retard de cryptage (dépassés) sont toujours inclus dans le rapport par sécurité.
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div style="display: flex; gap: 12px; margin-top: 8px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                        <button id="save-config-btn" type="button" class="btn btn-primary" style="flex: 1; min-height: 38px; justify-content: center;">Enregistrer</button>
+                        <button id="test-email-btn" type="button" class="btn btn-outline" style="flex: 1; min-height: 38px; justify-content: center;">Tester la connexion</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- COLONNE DROITE: APPAREILS ASSIGNÉS -->
+                <div class="dolphi-notif-column">
+                  <div class="dolphi-dashboard-table-panel" style="height: 100%; padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+                    <h2 style="font-size: 1.1rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-radio"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M7.76 16.24a6 6 0 0 1 0-8.49"/><path d="M4.93 19.07a10 10 0 0 1 0-14.14"/></svg>
+                      Équipements sous Surveillance
+                    </h2>
+                    <p class="dolphi-muted" style="line-height: 1.45; font-size: 0.8rem; margin: 0;">
+                      Pour associer un ou plusieurs équipements à l'email sélectionné, vous devez ajouter le ou les appareils à la liste des appareils que vous souhaitez suivre via le bouton de notification  (🔔) dans l'un des tableaux du Parc matériel
+                    </p>
+                    
+                    <div id="device-association-box" style="display: flex; flex-direction: column; gap: 10px; align-items: stretch; opacity: 0.5; pointer-events: none; margin-top: 8px;">
+                      <select id="notif-device-select" class="dolphi-select" style="margin: 0; width: 100%; min-height: 38px; font-size: 0.9rem;">
+                        <option value="">-- Sélectionner un appareil à associer --</option>
+                      </select>
+                      <button id="notif-associate-btn" type="button" class="btn btn-primary" style="min-height: 38px; width: 100%;">Associer</button>
+                    </div>
+                    
+                    <div class="dolphi-dashboard-table-wrap" style="flex: 1; min-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px;">
+                      <table class="dolphi-dashboard-table" style="min-width: auto; width: 100%;">
+                        <thead>
+                          <tr>
+                            <th>Appareil</th>
+                            <th>CIS</th>
+                            <th>Échéance</th>
+                            <th style="text-align: right; width: 60px;">Retirer</th>
+                          </tr>
+                        </thead>
+                        <tbody id="assigned-devices-tbody">
+                          <tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">Sélectionnez une adresse pour afficher les équipements.</td></tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+
+          let emails = [];
+          let selectedEmail = null;
+          
+          const notifFeedback = extensionMain.querySelector('#dolphi-notif-feedback');
+          const emailsListTbody = extensionMain.querySelector('#emails-list-tbody');
+          const emailConfigSection = extensionMain.querySelector('#email-config-section');
+          const configTitle = extensionMain.querySelector('#config-title');
+          const notifEnabled = extensionMain.querySelector('#email-notif-enabled');
+          const configSubSettings = extensionMain.querySelector('#config-sub-settings');
+          const emailNotifMode = extensionMain.querySelector('#email-notif-mode');
+          const globalCriteriaBox = extensionMain.querySelector('#global-criteria-box');
+          const notifJMinus1 = extensionMain.querySelector('#notif-j-minus-1');
+          const notifJ = extensionMain.querySelector('#notif-j');
+          const assignedDevicesTbody = extensionMain.querySelector('#assigned-devices-tbody');
+          
+          function showFeedback(message, error) {
+            notifFeedback.hidden = false;
+            notifFeedback.className = 'dolphi-feedback ' + (error ? 'error' : 'success');
+            notifFeedback.textContent = message;
+            setTimeout(() => { notifFeedback.hidden = true; }, 5000);
+          }
+          
+          async function loadEmails() {
+            try {
+              emails = await fetchJson('/api/notifications/emails');
+              renderEmailsList();
+            } catch (err) {
+              showFeedback("Erreur de chargement des emails: " + err.message, true);
+            }
+          }
+          
+          function renderEmailsList() {
+            if (!emails.length) {
+              emailsListTbody.innerHTML = `<tr><td colspan="2" style="text-align: center; color: var(--text-muted); padding: 20px;">Aucun destinataire enregistré.</td></tr>`;
+              return;
+            }
+            
+            emailsListTbody.innerHTML = '';
+            emails.forEach(item => {
+              const tr = document.createElement('tr');
+              tr.style.cursor = 'pointer';
+              if (selectedEmail && selectedEmail.id === item.id) {
+                tr.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                tr.style.fontWeight = 'bold';
+              }
+              
+              const tdEmail = document.createElement('td');
+              tdEmail.innerHTML = `${item.email} ${item.enabled ? (item.global_enabled ? '<span class="badge" style="margin-left:8px; font-size:10px; background-color: var(--primary);">Global</span>' : '<span class="badge" style="margin-left:8px; font-size:10px; background-color: rgba(255,255,255,0.15); color: var(--text-main);">Individuel</span>') : '<span class="badge" style="margin-left:8px; font-size:10px; background-color: rgba(230, 57, 70, 0.15); color: #e63946;">Désactivé</span>'}`;
+              tdEmail.addEventListener('click', () => selectEmail(item));
+              
+              const tdAction = document.createElement('td');
+              tdAction.style.textAlign = 'right';
+              
+              const delBtn = document.createElement('button');
+              delBtn.type = 'button';
+              delBtn.className = 'btn btn-outline btn-xs';
+              delBtn.style.color = 'var(--primary)';
+              delBtn.innerHTML = '🗑️';
+              delBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                if (!confirm(`Supprimer l'adresse ${item.email} et toutes ses liaisons ?`)) return;
+                try {
+                  await fetchJson(`/api/notifications/emails/${item.id}`, { method: 'DELETE' });
+                  if (selectedEmail && selectedEmail.id === item.id) {
+                    selectedEmail = null;
+                    localStorage.removeItem('dolphi_active_email_id');
+                    localStorage.removeItem('dolphi_active_email_name');
+                    disableConfigPanel();
+                  }
+                  await loadEmails();
+                  showFeedback("Destinataire supprimé avec succès.");
+                } catch (err) {
+                  showFeedback(err.message, true);
+                }
+              });
+              
+              tdAction.appendChild(delBtn);
+              tr.appendChild(tdEmail);
+              tr.appendChild(tdAction);
+              emailsListTbody.appendChild(tr);
+            });
+          }
+          
+          function disableConfigPanel() {
+            emailConfigSection.style.opacity = '0.5';
+            emailConfigSection.style.pointerEvents = 'none';
+            configTitle.textContent = "Sélectionnez une adresse pour la configurer";
+            assignedDevicesTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">Sélectionnez une adresse pour afficher les équipements.</td></tr>`;
+            if (notifEnabled) notifEnabled.checked = false;
+            
+            const assocBox = extensionMain.querySelector('#device-association-box');
+            if (assocBox) {
+              assocBox.style.opacity = '0.5';
+              assocBox.style.pointerEvents = 'none';
+              const deviceSelect = extensionMain.querySelector('#notif-device-select');
+              if (deviceSelect) deviceSelect.innerHTML = '<option value="">-- Sélectionner un appareil à associer --</option>';
+            }
+          }
+          
+          function updateConfigControlsState() {
+            if (!notifEnabled || !configSubSettings) return;
+            const isEnabled = notifEnabled.checked;
+            configSubSettings.style.opacity = isEnabled ? '1' : '0.5';
+            configSubSettings.style.pointerEvents = isEnabled ? 'auto' : 'none';
+            
+            // Check right panel state
+            const rightPanel = extensionMain.querySelector('.dolphi-notif-column:nth-child(2) > .dolphi-dashboard-table-panel');
+            if (rightPanel) {
+              rightPanel.style.opacity = isEnabled ? '1' : '0.5';
+              rightPanel.style.pointerEvents = isEnabled ? 'auto' : 'none';
+            }
+          }
+          
+          function selectEmail(item) {
+            selectedEmail = item;
+            localStorage.setItem('dolphi_active_email_id', item.id);
+            localStorage.setItem('dolphi_active_email_name', item.email);
+            
+            // Enable config panel
+            emailConfigSection.style.opacity = '1';
+            emailConfigSection.style.pointerEvents = 'auto';
+            configTitle.textContent = `Configuration - ${item.email}`;
+            
+            // Load values
+            notifEnabled.checked = !!item.enabled;
+            emailNotifMode.value = item.global_enabled ? 'global' : 'devices';
+            notifJMinus1.checked = !!item.notify_j_minus_1;
+            notifJ.checked = !!item.notify_j;
+            
+            // Toggle panel sub-settings state
+            updateConfigControlsState();
+            
+            // Toggle criteria visibility
+            updateCriteriaVisibility();
+            
+            // Redraw emails list to highlight selection
+            renderEmailsList();
+            
+            // Load assigned devices
+            loadAssignedDevices();
+          }
+          
+          function updateCriteriaVisibility() {
+            if (emailNotifMode.value === 'global') {
+              globalCriteriaBox.style.display = 'flex';
+            } else {
+              globalCriteriaBox.style.display = 'none';
+            }
+          }
+          
+          async function loadAssignedDevices() {
+            if (!selectedEmail) return;
+            assignedDevicesTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">Chargement des appareils liés...</td></tr>`;
+            
+            try {
+              const devices = await fetchJson(`/api/notifications/emails/${selectedEmail.id}/devices`);
+              renderAssignedDevices(devices);
+              
+              const assocBox = extensionMain.querySelector('#device-association-box');
+              const deviceSelect = extensionMain.querySelector('#notif-device-select');
+              if (assocBox && deviceSelect) {
+                assocBox.style.opacity = '1';
+                assocBox.style.pointerEvents = 'auto';
+                
+                const allActive = await fetchJson('/api/notifications/active-devices');
+                const associatedIds = new Set(devices.map(d => d.id));
+                const availableDevices = allActive.filter(d => !associatedIds.has(d.id));
+                
+                deviceSelect.innerHTML = '<option value="">-- Sélectionner un appareil à associer --</option>';
+                availableDevices.forEach(d => {
+                  const opt = document.createElement('option');
+                  opt.value = d.id;
+                  opt.textContent = `${d.modele || 'N/A'} - ${d.num_serie} (${d.cis || 'N/A'})`;
+                  deviceSelect.appendChild(opt);
+                });
+              }
+            } catch (err) {
+              assignedDevicesTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #ef4444; padding: 30px;">Erreur de chargement : ${err.message}</td></tr>`;
+            }
+          }
+          
+          function renderAssignedDevices(devices) {
+            if (!devices.length) {
+              assignedDevicesTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">Aucun appareil lié à cette adresse.<br><br><small>Allez dans le menu Parc matériel et cliquez sur la cloche (🔔) pour en associer.</small></td></tr>`;
+              return;
+            }
+            
+            assignedDevicesTbody.innerHTML = '';
+            devices.forEach(dev => {
+              const tr = document.createElement('tr');
+              
+              const tdDevice = document.createElement('td');
+              tdDevice.innerHTML = `<strong>${dev.modele || 'N/A'}</strong><br><small style="font-family:monospace; color:var(--text-muted);">${dev.num_serie}</small>`;
+              
+              const tdCis = document.createElement('td');
+              tdCis.textContent = dev.cis || 'N/A';
+              
+              const tdDate = document.createElement('td');
+              tdDate.textContent = dev.date_cle_a_faire || 'N/A';
+              
+              const tdAction = document.createElement('td');
+              tdAction.style.textAlign = 'right';
+              
+              const delBtn = document.createElement('button');
+              delBtn.type = 'button';
+              delBtn.className = 'btn btn-outline btn-xs';
+              delBtn.style.color = 'var(--primary)';
+              delBtn.innerHTML = '🗑️';
+              delBtn.title = 'Supprimer l\'association';
+              delBtn.addEventListener('click', async () => {
+                if (!confirm(`Supprimer l'association de cet appareil avec ${selectedEmail.email} ?`)) return;
+                try {
+                  await fetchJson(`/api/notifications/emails/${selectedEmail.id}/devices/${dev.id}`, { method: 'DELETE' });
+                  await loadAssignedDevices();
+                  showFeedback("Association supprimée avec succès.");
+                } catch (err) {
+                  showFeedback(err.message, true);
+                }
+              });
+              
+              tdAction.appendChild(delBtn);
+              tr.appendChild(tdDevice);
+              tr.appendChild(tdCis);
+              tr.appendChild(tdDate);
+              tr.appendChild(tdAction);
+              assignedDevicesTbody.appendChild(tr);
+            });
+          }
+          
+          // Event listener: Associate device
+          extensionMain.querySelector('#notif-associate-btn').addEventListener('click', async () => {
+            if (!selectedEmail) return;
+            const deviceSelect = extensionMain.querySelector('#notif-device-select');
+            const deviceId = deviceSelect.value;
+            if (!deviceId) {
+              alert("Veuillez sélectionner un appareil dans la liste.");
+              return;
+            }
+            
+            try {
+              await fetchJson('/api/notifications/assign-device', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  device_id: parseInt(deviceId, 10),
+                  email_id: selectedEmail.id
+                })
+              });
+              showFeedback("Équipement associé avec succès.");
+              await loadAssignedDevices();
+            } catch (err) {
+              showFeedback("Erreur lors de l'association : " + err.message, true);
+            }
+          });
+
+          // Event listener: Add email
+          extensionMain.querySelector('#add-email-btn').addEventListener('click', async () => {
+            const input = extensionMain.querySelector('#new-email-input');
+            const email = input.value.trim();
+            if (!email) return;
+            try {
+              await fetchJson('/api/notifications/emails', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+              });
+              input.value = '';
+              await loadEmails();
+              showFeedback("E-mail enregistré avec succès.");
+            } catch (err) {
+              showFeedback(err.message, true);
+            }
+          });
+          
+          // Event listener: Mode change
+          emailNotifMode.addEventListener('change', updateCriteriaVisibility);
+          
+          // Event listener: Enabled status change
+          notifEnabled.addEventListener('change', updateConfigControlsState);
+          
+          // Event listener: Save configuration
+          extensionMain.querySelector('#save-config-btn').addEventListener('click', async () => {
+            if (!selectedEmail) return;
+            const isEnabled = notifEnabled.checked;
+            const mode = emailNotifMode.value;
+            const payload = {
+              enabled: isEnabled,
+              global_enabled: mode === 'global',
+              notify_j_minus_1: notifJMinus1.checked,
+              notify_j: notifJ.checked
+            };
+            
+            try {
+              await fetchJson(`/api/notifications/emails/${selectedEmail.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
+              // Refresh state
+              selectedEmail.enabled = payload.enabled;
+              selectedEmail.global_enabled = payload.global_enabled;
+              selectedEmail.notify_j_minus_1 = payload.notify_j_minus_1;
+              selectedEmail.notify_j = payload.notify_j;
+              
+              await loadEmails();
+              showFeedback("Configuration enregistrée.");
+            } catch (err) {
+              showFeedback(err.message, true);
+            }
+          });
+          
+          // Event listener: Test email
+          extensionMain.querySelector('#test-email-btn').addEventListener('click', async () => {
+            if (!selectedEmail) return;
+            showFeedback("Envoi de l'email de test...");
+            try {
+              await fetchJson('/api/notifications/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: selectedEmail.email })
+              });
+              showFeedback(`Email de test envoyé avec succès à ${selectedEmail.email} !`);
+            } catch (err) {
+              showFeedback(err.message, true);
+            }
+          });
+          
+          // Initial loads
+          await loadEmails();
+          
+          // Reselect active email if present in localStorage
+          const savedActiveId = localStorage.getItem('dolphi_active_email_id');
+          if (savedActiveId) {
+            const found = emails.find(e => String(e.id) === String(savedActiveId));
+            if (found) {
+              selectEmail(found);
+            }
+          }
         }
 
         function updateAdvancedSearchFields() {
@@ -1708,9 +2250,46 @@
                 cell.dataset.dolphiSelectCell = '1';
                 row.insertBefore(cell, row.firstChild);
               }
-              if (cell.querySelector('[data-device-select]')) return;
               const serialCell = row.querySelector('td:not([data-dolphi-select-cell])');
               const device = serialCell && devicesBySerial.get(normalizedText(serialCell.textContent));
+              if (device) {
+                const lastCell = row.lastElementChild;
+                if (lastCell) {
+                  const nativeBellBtn = Array.from(lastCell.querySelectorAll('button')).find(btn => 
+                    btn.querySelector('svg.lucide-bell, svg.lucide-bell-off') ||
+                    btn.querySelector('svg[class*="lucide-bell"]')
+                  );
+                  if (nativeBellBtn && !nativeBellBtn.dataset.dolphiBellIntercepted) {
+                    nativeBellBtn.dataset.dolphiBellIntercepted = '1';
+                    nativeBellBtn.addEventListener('click', async (e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      
+                      const isCurrentlyActive = device.notification_active === 1 || device.notification_active === true || String(device.notification_active) === '1';
+                      const newActive = !isCurrentlyActive;
+                      
+                      try {
+                        const res = await fetchJson(`/api/devices/${device.id}/toggle-notification`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            notification_active: newActive,
+                            email_notif: newActive ? 'dummy@sdis04.fr' : null
+                          })
+                        });
+                        
+                        if (res.success) {
+                          device.notification_active = newActive ? 1 : 0;
+                          refreshStandardView();
+                        }
+                      } catch (err) {
+                        alert("Erreur lors de la modification de la notification : " + err.message);
+                      }
+                    }, true);
+                  }
+                }
+              }
+              if (cell.querySelector('[data-device-select]')) return;
               if (!device) return;
               const checkbox = document.createElement('input');
               checkbox.type = 'checkbox';
@@ -1786,7 +2365,59 @@
             if (label) label.textContent = 'Tableau de bord';
             dashboardButton.title = 'Tableau de bord';
             dashboardButton.addEventListener('click', () => openExtension('dashboard'));
+
+            const svg = dashboardButton.querySelector('svg');
+            if (svg) {
+              svg.innerHTML = `<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline>`;
+              svg.setAttribute('class', 'lucide lucide-home');
+              svg.setAttribute('stroke', 'currentColor');
+              svg.setAttribute('stroke-width', '2');
+              svg.setAttribute('stroke-linecap', 'round');
+              svg.setAttribute('stroke-linejoin', 'round');
+              svg.setAttribute('fill', 'none');
+            }
+
             nav.insertBefore(dashboardButton, nav.firstChild);
+          }
+
+          notifNavBtn = nav.querySelector('[data-dolphi-nav-notifications]');
+          if (!notifNavBtn) {
+            const stockButton = Array.from(nav.querySelectorAll('button')).find(button => button.textContent.includes('Stock') || (button.title && button.title.includes('Stock')));
+            if (stockButton) {
+              const svg = stockButton.querySelector('svg');
+              if (svg) {
+                svg.innerHTML = `<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line>`;
+                svg.setAttribute('class', 'lucide lucide-box');
+                svg.setAttribute('stroke', 'currentColor');
+                svg.setAttribute('stroke-width', '2');
+                svg.setAttribute('stroke-linecap', 'round');
+                svg.setAttribute('stroke-linejoin', 'round');
+                svg.setAttribute('fill', 'none');
+              }
+            }
+            if (stockButton) {
+              notifNavBtn = stockButton.cloneNode(true);
+              notifNavBtn.dataset.dolphiNavNotifications = '1';
+              notifNavBtn.style.backgroundColor = 'transparent';
+              notifNavBtn.style.color = 'var(--text-main)';
+              const label = notifNavBtn.querySelector('span');
+              if (label) label.textContent = 'Notifications';
+              notifNavBtn.title = 'Notifications';
+              
+              const svg = notifNavBtn.querySelector('svg');
+              if (svg) {
+                svg.innerHTML = `<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9m1.73 13a3 3 0 0 0 5.54 0"></path>`;
+                svg.setAttribute('class', 'lucide lucide-bell');
+                svg.setAttribute('stroke', 'currentColor');
+                svg.setAttribute('stroke-width', '2');
+                svg.setAttribute('stroke-linecap', 'round');
+                svg.setAttribute('stroke-linejoin', 'round');
+                svg.setAttribute('fill', 'none');
+              }
+              
+              notifNavBtn.addEventListener('click', () => openExtension('notifications'));
+              stockButton.parentNode.insertBefore(notifNavBtn, stockButton.nextSibling);
+            }
           }
 
           settingsButton = footer.querySelector('[data-dolphi-settings]');
@@ -1829,10 +2460,30 @@
           collapseButton.title = collapsed ? 'Déployer le menu' : 'Rétracter le menu';
           updateAdvancedSearchFields();
           hideSiteInfoTab();
+          removeLegacyNotificationConfig();
 
           if (!app.dataset.dolphiDefaultDashboard) {
             app.dataset.dolphiDefaultDashboard = '1';
             openExtension('dashboard');
+          }
+          replaceTextInNode(document.getElementById('root'));
+        }
+
+        function replaceTextInNode(node) {
+          if (!node) return;
+          let child = node.firstChild;
+          while (child) {
+            if (child.nodeType === 3) {
+              const val = child.nodeValue;
+              if (val.includes('Bips Pager')) {
+                child.nodeValue = val.replace(/Bips Pager/g, 'BIPs');
+              } else if (val.includes('Bips pager')) {
+                child.nodeValue = val.replace(/Bips pager/g, 'BIPs');
+              }
+            } else if (child.nodeType === 1) {
+              replaceTextInNode(child);
+            }
+            child = child.nextSibling;
           }
         }
 
@@ -1842,6 +2493,8 @@
             openExtension('dashboard');
           } else if (viewId === 'settings') {
             openExtension('settings');
+          } else if (viewId === 'notifications') {
+            openExtension('notifications');
           } else {
             closeExtension();
             if (typeof window.setLegacyPage === 'function') {
@@ -1849,6 +2502,17 @@
             }
           }
         };
+
+        function removeLegacyNotificationConfig() {
+          const headings = Array.from(document.querySelectorAll('h3, h2, h4'));
+          const targetHeading = headings.find(h => 
+            h.textContent.includes('Configuration des Alertes')
+          );
+          if (targetHeading) {
+            const card = targetHeading.closest('.glass') || targetHeading.parentElement;
+            if (card) card.style.display = 'none';
+          }
+        }
 
         const observer = new MutationObserver(installEnhancements);
         observer.observe(document.getElementById('root'), { childList: true, subtree: true });

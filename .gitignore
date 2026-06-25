@@ -1,0 +1,11 @@
+.env
+__pycache__/
+.stfolder
+.agents/
+scratch/
+v2-design-pro/
+*.log
+dolphisic_redesign/backend/.env
+dolphisic_redesign/backend/notification_settings.json
+dolphisic_redesign/backend/logs/
+dolphisic_redesign/backend/__pycache__/

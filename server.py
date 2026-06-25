@@ -1,5 +1,20 @@
 import os
 import sys
+
+def load_env():
+    env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+    if os.path.exists(env_path):
+        try:
+            with open(env_path, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        key, val = line.split('=', 1)
+                        os.environ[key.strip()] = val.strip()
+        except Exception:
+            pass
+
+load_env()
 import sqlite3
 import hashlib
 import json
@@ -188,6 +203,44 @@ def init_db():
             FOREIGN KEY(stock_id) REFERENCES stock(id)
         )
     """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS dashboard_hidden_devices (
+            device_id INTEGER PRIMARY KEY,
+            hidden_at TEXT NOT NULL
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS notification_emails (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            enabled INTEGER DEFAULT 0,
+            global_enabled INTEGER DEFAULT 0,
+            notify_j_minus_1 INTEGER DEFAULT 0,
+            notify_j INTEGER DEFAULT 0
+        )
+    """)
+    # Migration to add enabled column if it doesn't exist
+    try:
+        cur.execute("ALTER TABLE notification_emails ADD COLUMN enabled INTEGER DEFAULT 0")
+    except sqlite3.OperationalError:
+        pass
+
+    # Drop table if it has the old foreign key constraint to avoid operational error
+    try:
+        schema_info = cur.execute("SELECT sql FROM sqlite_master WHERE name='notification_email_devices'").fetchone()
+        if schema_info and "REFERENCES parc" in schema_info[0]:
+            cur.execute("DROP TABLE IF EXISTS notification_email_devices")
+    except Exception:
+        pass
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS notification_email_devices (
+            email_id INTEGER,
+            device_id INTEGER,
+            PRIMARY KEY (email_id, device_id),
+            FOREIGN KEY (email_id) REFERENCES notification_emails (id) ON DELETE CASCADE
+        )
+    """)
     # Migration to add new columns if they don't exist
     for col in ["modele", "num_serie", "cis", "pocsag", "rfgi", "identifiant"]:
         try:
@@ -235,6 +288,37 @@ def init_db():
                 SELECT 1 FROM parc WHERE UPPER(TRIM(num_serie)) = UPPER(TRIM(?))
             )
         """, (model, serial, last_key_date, next_key_date, last_key_date, serial))
+
+    # Dynamic test devices for notifications verification
+    from datetime import timedelta
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    tomorrow_str = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
+    yesterday_str = (datetime.now() - timedelta(days=730)).strftime("%Y-%m-%d") # 2 years ago
+
+    notif_test_devices = [
+        ('TEST-EXP-TODAY', 'TPH700', yesterday_str, today_str, 'test-today@sdis04.fr', 1),
+        ('TEST-EXP-TOMORROW-1', 'TPH700', yesterday_str, tomorrow_str, 'test-tomorrow@sdis04.fr', 1),
+        ('TEST-EXP-TOMORROW-2', 'TPH700', yesterday_str, tomorrow_str, 'test-tomorrow@sdis04.fr', 1),
+    ]
+
+    for serial, model, last_key_date, next_key_date, test_email, notif_active in notif_test_devices:
+        cur.execute("SELECT 1 FROM parc WHERE UPPER(TRIM(num_serie)) = ?", (serial.upper(),))
+        exists = cur.fetchone()
+        if exists:
+            cur.execute("""
+                UPDATE parc
+                SET date_maj_cle = ?, date_cle_a_faire = ?, date_prog = ?, cis = 'TEST', notification_active = ?, email_notif = ?
+                WHERE UPPER(TRIM(num_serie)) = ?
+            """, (last_key_date, next_key_date, last_key_date, notif_active, test_email, serial.upper()))
+        else:
+            cur.execute("""
+                INSERT INTO parc
+                    (cis, modele, num_serie, affectation, version_logiciel,
+                     observation, date_maj_cle, date_cle_a_faire, date_prog, notification_active, email_notif)
+                VALUES ('TEST', ?, ?, 'APPAREIL TEST NOTIF', 'TEST',
+                       'Appareil de test dynamique pour notifications', ?, ?, ?, ?, ?)
+            """, (model, serial, last_key_date, next_key_date, last_key_date, notif_active, test_email))
+
     conn.commit()
     conn.close()
 
@@ -306,7 +390,13 @@ def save_notification_settings(data):
     allowed_keys = set(DEFAULT_NOTIFICATION_SETTINGS)
     for key, value in data.items():
         if key in allowed_keys:
-            current[key] = value
+            if key == 'global_notification_enabled':
+                if isinstance(value, str):
+                    current[key] = value.lower() == 'true'
+                else:
+                    current[key] = bool(value)
+            else:
+                current[key] = value
 
     with open(SETTINGS_FILE, 'w', encoding='utf-8') as settings_file:
         json.dump(current, settings_file, indent=4, ensure_ascii=False)
@@ -744,6 +834,13 @@ def handle_notification_settings():
         data = redact_payload(request.json or {})
         saved = save_notification_settings(request.json or {})
         log_logic(f"Notification email setting updated: {data}")
+        
+        # Trigger an immediate check in the background if global notification is enabled and email is set
+        if saved.get('global_notification_enabled', False) and saved.get('email_notif'):
+            import threading
+            log_logic("Global notification is active, spawning immediate check in background thread.")
+            threading.Thread(target=check_and_send_notifications, kwargs={'force': False}, daemon=True).start()
+
         return jsonify({
             'success': True,
             'message': 'Adresse email enregistrée',
@@ -756,17 +853,471 @@ def handle_notification_settings():
         return jsonify({'error': str(e)}), 500
 
 
+def send_test_email(recipient):
+    import smtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+
+    smtp_host = "smtp-relay.brevo.com"
+    smtp_port = 587
+    smtp_user = "afb5b1001@smtp-brevo.com"
+    smtp_password = os.environ.get("SMTP_PASSWORD")
+    if not smtp_password:
+        raise ValueError("SMTP_PASSWORD non configuré dans l'environnement ou le fichier .env")
+    smtp_from = "dolphisic@outlook.fr"
+
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = "Dolphisic - Test du système de notification email"
+    msg['From'] = f"Dolphisic SDIS 04 <{smtp_from}>"
+    msg['To'] = recipient
+
+    text = (
+        "Bonjour,\n\n"
+        "Ceci est un email de test envoyé depuis votre application Dolphisic.\n"
+        "Le système de notification par email est désormais fonctionnel.\n\n"
+        "Cordialement,\n"
+        "L'équipe SDIS 04"
+    )
+    
+    html = f"""
+    <html>
+      <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f5f7; margin: 0; padding: 20px; color: #333333;">
+        <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e1e4e8;">
+          <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 30px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600; letter-spacing: 0.5px;">DOLPHISIC</h1>
+            <p style="color: #94a3b8; margin: 5px 0 0 0; font-size: 14px;">Système de gestion et d'alertes du parc radio</p>
+          </div>
+          <div style="padding: 30px; line-height: 1.6;">
+            <h2 style="color: #0f172a; margin-top: 0; font-size: 18px; font-weight: 600;">Test de notification réussi !</h2>
+            <p style="color: #475569;">Bonjour,</p>
+            <p style="color: #475569;">Vous recevez ce message car vous avez cliqué sur le bouton de test d'envoi d'email dans les paramètres de <strong>Dolphisic</strong>.</p>
+            <div style="background-color: #f8fafc; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0; border-radius: 0 4px 4px 0;">
+              <p style="margin: 0; font-size: 14px; color: #1e293b;">
+                <strong>Configuration SMTP Brevo :</strong><br>
+                Hôte : <code>{smtp_host}</code><br>
+                Port : <code>{smtp_port}</code><br>
+                Utilisateur : <code>{smtp_user}</code><br>
+                Expéditeur : <code>{smtp_from}</code>
+              </p>
+            </div>
+            <p style="color: #475569;">Le système d'envoi d'email est correctement configuré et prêt à vous notifier lors des prochaines échéances de cryptage ou de retour de prêt.</p>
+            <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0;">
+            <p style="color: #64748b; font-size: 12px; text-align: center; margin: 0;">
+              Ceci est un message automatique, merci de ne pas y répondre.<br>
+              &copy; {datetime.now().year} SDIS 04 - Tous droits réservés.
+            </p>
+          </div>
+        </div>
+      </body>
+    </html>
+    """
+
+    part1 = MIMEText(text, 'plain', 'utf-8')
+    part2 = MIMEText(html, 'html', 'utf-8')
+
+    msg.attach(part1)
+    msg.attach(part2)
+
+    log_logic(f"Connecting to SMTP host {smtp_host}:{smtp_port}...")
+    server = smtplib.SMTP(smtp_host, smtp_port, timeout=15)
+    
+    log_logic("Sending EHLO...")
+    server.ehlo()
+    
+    log_logic("Starting TLS secure channel...")
+    server.starttls()
+    
+    log_logic("Sending EHLO after TLS...")
+    server.ehlo()
+    
+    log_logic(f"Logging in as SMTP user: {smtp_user}...")
+    server.login(smtp_user, smtp_password)
+    log_logic("SMTP login OK")
+    
+    log_logic(f"Sending email from {smtp_from} to {recipient}...")
+    response = server.sendmail(smtp_from, recipient, msg.as_string())
+    log_logic(f"SMTP sendmail response: {response if response else '250 OK (Email accepted for delivery)'}")
+    
+    log_logic("Closing SMTP connection...")
+    server.quit()
+    log_logic("Email sent successfully and connection closed.")
+
+
+def send_consolidated_email(recipient, items):
+    import smtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+
+    smtp_host = "smtp-relay.brevo.com"
+    smtp_port = 587
+    smtp_user = "afb5b1001@smtp-brevo.com"
+    smtp_password = os.environ.get("SMTP_PASSWORD")
+    smtp_from = "dolphisic@outlook.fr"
+
+    if not smtp_password:
+        raise ValueError("SMTP_PASSWORD non configuré dans l'environnement ou le fichier .env")
+
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = f"Dolphisic - {len(items)} alerte(s) d'échéance de cryptage"
+    msg['From'] = f"Dolphisic SDIS 04 <{smtp_from}>"
+    msg['To'] = recipient
+
+    # Build plain text table
+    text_lines = [
+        "Bonjour,",
+        "",
+        "Voici le récapitulatif des équipements radio dont le cryptage arrive à échéance :",
+        ""
+    ]
+    for item in items:
+        dev = item['device']
+        if item['type'] == 'overdue':
+            status = "DÉPASSÉ (En retard)"
+        elif item['type'] == 'today':
+            status = "AUJOURD'HUI"
+        else:
+            status = "DEMAIN (1 jour à l'avance)"
+        text_lines.append(f"- CIS: {dev['cis']} | Modèle: {dev['modele']} | N° Série: {dev['num_serie']} | Échéance: {dev['date_cle_a_faire']} | Statut: {status}")
+    
+    text_lines.extend([
+        "",
+        "Merci d'effectuer les mises à jour nécessaires.",
+        "",
+        "Cordialement,",
+        "L'équipe SDIS 04"
+    ])
+    text = "\n".join(text_lines)
+
+    # Build HTML table rows
+    rows_html = ""
+    for item in items:
+        dev = item['device']
+        if item['type'] == 'overdue':
+            status_style = "background-color: #fef2f2; color: #991b1b; border: 1px solid #fee2e2;"
+            status_text = "🚨 Retard"
+        elif item['type'] == 'today':
+            status_style = "background-color: #fff5f5; color: #c53030; border: 1px solid #fed7d7;"
+            status_text = "⚠️ Aujourd'hui"
+        else:
+            status_style = "background-color: #fffbeb; color: #92400e; border: 1px solid #fef3c7;"
+            status_text = "📅 Demain (J-1)"
+
+        rows_html += f"""
+        <tr style="border-bottom: 1px solid #e2e8f0;">
+          <td style="padding: 12px; font-weight: 600; color: #1e293b;">{dev['cis']}</td>
+          <td style="padding: 12px; color: #334155;">{dev['modele']}</td>
+          <td style="padding: 12px; color: #334155; font-family: monospace;">{dev['num_serie']}</td>
+          <td style="padding: 12px; color: #334155;">{dev['date_cle_a_faire']}</td>
+          <td style="padding: 12px; text-align: center;">
+            <span style="display: inline-block; padding: 4px 8px; font-size: 12px; font-weight: 600; border-radius: 4px; {status_style}">{status_text}</span>
+          </td>
+        </tr>
+        """
+
+    html = f"""
+    <html>
+      <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f5f7; margin: 0; padding: 20px; color: #333333;">
+        <div style="max-width: 700px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e1e4e8;">
+          <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 30px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600; letter-spacing: 0.5px;">DOLPHISIC</h1>
+            <p style="color: #94a3b8; margin: 5px 0 0 0; font-size: 14px;">Alertes de cryptage de parc radio</p>
+          </div>
+          <div style="padding: 30px; line-height: 1.6;">
+            <h2 style="color: #0f172a; margin-top: 0; font-size: 18px; font-weight: 600;">Récapitulatif des échéances</h2>
+            <p style="color: #475569;">Bonjour,</p>
+            <p style="color: #475569;">Voici la liste des équipements dont les clés de cryptage doivent être mises à jour (dépassées, aujourd'hui ou demain) :</p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0; text-align: left; font-size: 14px;">
+              <thead>
+                <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                  <th style="padding: 12px; font-weight: 600; color: #475569;">CIS</th>
+                  <th style="padding: 12px; font-weight: 600; color: #475569;">Modèle</th>
+                  <th style="padding: 12px; font-weight: 600; color: #475569;">N° Série</th>
+                  <th style="padding: 12px; font-weight: 600; color: #475569;">Échéance</th>
+                  <th style="padding: 12px; font-weight: 600; color: #475569; text-align: center;">Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows_html}
+              </tbody>
+            </table>
+            
+            <p style="color: #475569;">Merci de programmer et d'effectuer ces opérations de cryptage dans les meilleurs délais pour éviter toute interruption de service.</p>
+            <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0;">
+            <p style="color: #64748b; font-size: 12px; text-align: center; margin: 0;">
+              Ceci est un message automatique de Dolphisic. Merci de ne pas y répondre.<br>
+              &copy; {datetime.now().year} SDIS 04 - Tous droits réservés.
+            </p>
+          </div>
+        </div>
+      </body>
+    </html>
+    """
+
+    msg.attach(MIMEText(text, 'plain', 'utf-8'))
+    msg.attach(MIMEText(html, 'html', 'utf-8'))
+
+    # Send the message via SMTP
+    log_logic(f"Connecting to SMTP host {smtp_host}:{smtp_port}...")
+    server = smtplib.SMTP(smtp_host, smtp_port, timeout=15)
+    server.ehlo()
+    server.starttls()
+    server.ehlo()
+    server.login(smtp_user, smtp_password)
+    
+    log_logic(f"SMTP sending email from {smtp_from} to {recipient}...")
+    response = server.sendmail(smtp_from, recipient, msg.as_string())
+    log_logic(f"SMTP response: {response if response else '250 OK (Email accepted for delivery)'}")
+    
+    server.quit()
+
+
+def check_and_send_notifications(force=False, target_email=None):
+    from datetime import datetime, timedelta
+    import json
+    import os
+
+    log_logic(f"Starting check_and_send_notifications(force={force}, target_email={target_email})...")
+    
+    # Load all registered notification emails (only enabled ones)
+    try:
+        if target_email:
+            emails_config = query_db(DB_SDIS, "SELECT id, email, global_enabled, notify_j_minus_1, notify_j FROM notification_emails WHERE email = ? AND enabled = 1", (target_email,))
+        else:
+            emails_config = query_db(DB_SDIS, "SELECT id, email, global_enabled, notify_j_minus_1, notify_j FROM notification_emails WHERE enabled = 1")
+    except Exception as e:
+        log_logic(f"Failed to query notification emails: {e}")
+        return
+
+    if not emails_config:
+        log_logic("No registered emails found for notifications.")
+        return
+
+    # Load all device assignments to email IDs
+    try:
+        assignments_rows = query_db(DB_SDIS, "SELECT email_id, device_id FROM notification_email_devices")
+        assignments = { (row['email_id'], row['device_id']) for row in assignments_rows }
+    except Exception as e:
+        log_logic(f"Failed to query device assignments: {e}")
+        assignments = set()
+
+    # Query all active devices (excluding hidden devices and reform/lost ones)
+    query = """
+        SELECT p.rowid AS id, p.num_serie, p.modele, p.cis, p.affectation,
+               p.date_maj_cle, p.date_cle_a_faire, m.type
+        FROM parc p
+        LEFT JOIN materiel m ON TRIM(p.modele) = TRIM(m.modele)
+        WHERE UPPER(TRIM(COALESCE(p.cis, ''))) NOT IN ('PERDU', 'REFORME', 'RÉFORME')
+          AND p.date_cle_a_faire IS NOT NULL
+          AND TRIM(p.date_cle_a_faire) != ''
+          AND NOT EXISTS (
+              SELECT 1
+              FROM dashboard_hidden_devices hidden
+              WHERE hidden.device_id = p.rowid
+          )
+    """
+    
+    try:
+        devices = query_db(DB_SDIS, query)
+    except Exception as e:
+        log_logic(f"Failed to query devices for notifications: {e}")
+        return
+
+    today = datetime.now().date()
+    tomorrow = today + timedelta(days=1)
+    today_str = today.strftime("%Y-%m-%d")
+
+    # Load history of already sent notifications
+    history_file = os.path.join(SERVER_DIR, "notification_history.json")
+    sent_alerts = []
+    if os.path.exists(history_file):
+        try:
+            with open(history_file, 'r', encoding='utf-8') as f:
+                history_data = json.load(f)
+                sent_alerts = history_data.get('sent_alerts', [])
+        except Exception as e:
+            log_logic(f"Unable to read notification history: {e}")
+
+    # Index historical sent entries for faster check
+    global_catchups = {a['email'] for a in sent_alerts if 'email' in a and a.get('type') == 'global_catchup'}
+    specific_overdues = {(a['email'], a['device_id']) for a in sent_alerts if 'email' in a and 'device_id' in a and a.get('type') == 'overdue'}
+    sent_set = { (a['email'], a['device_id'], a['date'], a['type']) for a in sent_alerts if 'email' in a and 'device_id' in a and 'date' in a and 'type' in a }
+
+    notifications_to_send = {}
+    new_sent_entries = []
+
+    for dev in devices:
+        due_date = parse_date_value(dev['date_cle_a_faire'])
+        if not due_date:
+            continue
+        
+        alert_type = None
+        if due_date < today:
+            alert_type = 'overdue'
+        elif due_date == today:
+            alert_type = 'today'
+        elif due_date == tomorrow:
+            alert_type = 'tomorrow'
+            
+        if not alert_type:
+            continue
+
+        device_id = dev['id']
+
+        for email_row in emails_config:
+            email = email_row['email'].strip()
+            if not email:
+                continue
+
+            # Determine eligibility
+            eligible = False
+            if email_row['global_enabled'] == 1:
+                # Global notification logic:
+                if alert_type == 'overdue':
+                    # Overdue is only included if global catch-up has not been sent yet
+                    catchup_sent = (email in global_catchups) if not force else False
+                    if not catchup_sent:
+                        eligible = True
+                elif alert_type == 'today' and email_row['notify_j'] == 1:
+                    eligible = True
+                elif alert_type == 'tomorrow' and email_row['notify_j_minus_1'] == 1:
+                    eligible = True
+            else:
+                # Specific assigned devices logic:
+                if (email_row['id'], device_id) in assignments:
+                    if alert_type == 'overdue':
+                        # Overdue for specific device is only sent once ever
+                        overdue_sent = ((email, device_id) in specific_overdues) if not force else False
+                        if not overdue_sent:
+                            eligible = True
+                    else:
+                        eligible = True
+
+            if not eligible:
+                continue
+
+            # Check if we already sent this exact alert today (prevent duplicates on same-day runs)
+            if not force and (email, device_id, today_str, alert_type) in sent_set:
+                continue
+
+            if email not in notifications_to_send:
+                notifications_to_send[email] = []
+            
+            notifications_to_send[email].append({
+                'device': dev,
+                'type': alert_type
+            })
+            
+            # Track that we are sending this alert
+            new_sent_entries.append({
+                'email': email,
+                'device_id': device_id,
+                'date': today_str,
+                'type': alert_type
+            })
+
+    if not notifications_to_send:
+        log_logic("No new notifications to send.")
+        return
+
+    # Send consolidated emails
+    for email, items in notifications_to_send.items():
+        log_logic(f"Sending consolidated email to {email} containing {len(items)} alerts...")
+        try:
+            send_consolidated_email(email, items)
+            log_logic(f"Consolidated email successfully sent to {email}")
+            
+            # Record global_catchup entry if it was sent now
+            email_row = next((r for r in emails_config if r['email'].strip() == email), None)
+            if email_row and email_row['global_enabled'] == 1 and (email not in global_catchups or force):
+                new_sent_entries.append({
+                    'email': email,
+                    'device_id': None,
+                    'date': today_str,
+                    'type': 'global_catchup'
+                })
+        except Exception as e:
+            log_logic(f"Failed to send consolidated email to {email}: {e}")
+            # Do not track as sent if it failed to deliver
+            new_sent_entries = [entry for entry in new_sent_entries if entry['email'] != email]
+
+    # Update history file
+    if not force and new_sent_entries:
+        sent_alerts.extend(new_sent_entries)
+        # Prune old history entries (e.g. older than 30 days)
+        cutoff_date = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+        sent_alerts = [a for a in sent_alerts if a.get('date', '') >= cutoff_date]
+        try:
+            with open(history_file, 'w', encoding='utf-8') as f:
+                json.dump({'sent_alerts': sent_alerts}, f, indent=4)
+            log_logic(f"Notification history updated with {len(new_sent_entries)} new entries.")
+        except Exception as e:
+            log_logic(f"Failed to save notification history: {e}")
+
+
+def start_notification_scheduler():
+    import threading
+    import time
+
+    def run_loop():
+        # Delay startup slightly to let the server load
+        time.sleep(5)
+        log_logic("Notification scheduler check running...")
+        try:
+            check_and_send_notifications()
+        except Exception as e:
+            log_logic(f"Error in notification scheduler startup run: {e}")
+            
+        while True:
+            # Run check every 4 hours
+            time.sleep(4 * 3600)
+            try:
+                check_and_send_notifications()
+            except Exception as e:
+                log_logic(f"Error in notification scheduler loop: {e}")
+
+    thread = threading.Thread(target=run_loop, daemon=True, name="DolphisicNotificationScheduler")
+    thread.start()
+    log_logic("Notification scheduler background thread started.")
+
+
+# Trigger scheduler thread startup
+start_notification_scheduler()
+
+
 @app.route('/api/notifications/send', methods=['POST'])
-def send_notification_placeholder():
+def send_notification():
     settings = load_notification_settings()
     recipient = (request.json or {}).get('email') or settings.get('email_notif')
     if not recipient:
         return jsonify({'error': 'Adresse email destinataire requise'}), 400
-    log_logic(f"Email send requested for recipient: {recipient} (provider not configured)")
-    return jsonify({
-        'success': False,
-        'message': "Bouton prêt. Configuration d'envoi à compléter."
-    })
+    
+    log_logic(f"Email send requested for recipient: {recipient} using Brevo SMTP")
+    try:
+        send_test_email(recipient)
+        log_logic(f"Test email successfully sent to {recipient}")
+        return jsonify({
+            'success': True,
+            'message': f"Email de test envoyé avec succès à {recipient} !"
+        })
+    except Exception as e:
+        log_logic(f"Failed to send test email to {recipient}: {str(e)}")
+        return jsonify({'error': f"Échec de l'envoi de l'email : {str(e)}"}), 500
+
+
+@app.route('/api/notifications/run-check', methods=['POST'])
+def run_notifications_check():
+    force = request.args.get('force', 'false').lower() == 'true'
+    log_logic(f"Manual notification check requested (force={force})")
+    try:
+        check_and_send_notifications(force=force)
+        return jsonify({
+            'success': True,
+            'message': "Vérification des notifications effectuée avec succès !"
+        })
+    except Exception as e:
+        log_logic(f"Manual notification check failed: {e}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/devices/<int:rowid>/toggle-notification', methods=['POST'])
 def toggle_device_notification(rowid):
@@ -794,6 +1345,184 @@ def toggle_device_notification(rowid):
         })
     except Exception as e:
         log_logic(f"Failed to toggle notification for Device ID={rowid}: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+# --- NEW NOTIFICATIONS RELATIONAL API ---
+@app.route('/api/notifications/emails', methods=['GET', 'POST'])
+def handle_notification_emails():
+    if request.method == 'GET':
+        try:
+            emails = query_db(DB_SDIS, "SELECT id, email, enabled, global_enabled, notify_j_minus_1, notify_j FROM notification_emails")
+            return jsonify([dict(row) for row in emails])
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
+    # POST: Add new email
+    try:
+        data = request.json or {}
+        email = data.get('email', '').strip()
+        if not email:
+            return jsonify({'error': 'Adresse email manquante'}), 400
+        
+        # Insert (enabled = 0 by default)
+        email_id = query_db(DB_SDIS, "INSERT INTO notification_emails (email, enabled) VALUES (?, 0)", (email,), commit=True)
+        log_logic(f"Added new notification email: {email} (ID: {email_id})")
+        return jsonify({
+            'success': True,
+            'id': email_id,
+            'email': email,
+            'enabled': 0,
+            'global_enabled': 0,
+            'notify_j_minus_1': 0,
+            'notify_j': 0
+        })
+    except sqlite3.IntegrityError:
+        return jsonify({'error': 'Cette adresse e-mail existe déjà'}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/notifications/emails/<int:email_id>', methods=['PUT', 'DELETE'])
+def handle_single_notification_email(email_id):
+    if request.method == 'DELETE':
+        try:
+            # Delete manually assigned devices to avoid foreign key issues
+            query_db(DB_SDIS, "DELETE FROM notification_email_devices WHERE email_id = ?", (email_id,), commit=True)
+            # Delete email
+            query_db(DB_SDIS, "DELETE FROM notification_emails WHERE id = ?", (email_id,), commit=True)
+            log_logic(f"Deleted notification email ID: {email_id}")
+            return jsonify({'success': True, 'message': 'E-mail supprimé avec succès'})
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
+    # PUT: Update configuration
+    try:
+        data = request.json or {}
+        enabled = 1 if data.get('enabled') else 0
+        global_enabled = 1 if data.get('global_enabled') else 0
+        notify_j_minus_1 = 1 if data.get('notify_j_minus_1') else 0
+        notify_j = 1 if data.get('notify_j') else 0
+
+        # Retrieve current configuration to detect toggling global settings on
+        old_config = query_db(DB_SDIS, "SELECT email, enabled, global_enabled FROM notification_emails WHERE id = ?", (email_id,), one=True)
+
+        query_db(DB_SDIS, """
+            UPDATE notification_emails 
+            SET enabled = ?, global_enabled = ?, notify_j_minus_1 = ?, notify_j = ? 
+            WHERE id = ?
+        """, (enabled, global_enabled, notify_j_minus_1, notify_j, email_id), commit=True)
+
+        log_logic(f"Updated notification email ID {email_id} | enabled={enabled} | global={global_enabled} | J-1={notify_j_minus_1} | J={notify_j}")
+        
+        email_info = query_db(DB_SDIS, "SELECT email FROM notification_emails WHERE id = ?", (email_id,), one=True)
+        if email_info and email_info['email']:
+            email = email_info['email'].strip()
+            
+            # Detect if global notification is newly activated (either enabled toggle on while global was on, or global toggle on while enabled was on)
+            is_global_activation = False
+            if old_config and enabled == 1 and global_enabled == 1:
+                if old_config['enabled'] != 1 or old_config['global_enabled'] != 1:
+                    is_global_activation = True
+
+            if is_global_activation:
+                log_logic(f"Global notification activated for {email}. Clearing alert history for this email to force catch-up email.")
+                history_file = os.path.join(SERVER_DIR, "notification_history.json")
+                if os.path.exists(history_file):
+                    try:
+                        with open(history_file, 'r', encoding='utf-8') as f:
+                            hdata = json.load(f)
+                        sent_alerts = hdata.get('sent_alerts', [])
+                        sent_alerts = [a for a in sent_alerts if a.get('email') != email]
+                        with open(history_file, 'w', encoding='utf-8') as f:
+                            json.dump({'sent_alerts': sent_alerts}, f, indent=4)
+                    except Exception as e:
+                        log_logic(f"Failed to clear alert history: {e}")
+
+            if enabled == 1:
+                import threading
+                log_logic(f"Immediate check triggered in background for {email} after config change")
+                threading.Thread(target=check_and_send_notifications, kwargs={'force': False, 'target_email': email}, daemon=True).start()
+
+        return jsonify({'success': True, 'message': 'Configuration mise à jour'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/notifications/emails/<int:email_id>/devices', methods=['GET'])
+def get_email_devices(email_id):
+    try:
+        # Join notification_email_devices with parc to get details
+        devices = query_db(DB_SDIS, """
+            SELECT p.rowid AS id, p.num_serie, p.modele, p.cis, p.date_cle_a_faire
+            FROM notification_email_devices d
+            JOIN parc p ON d.device_id = p.rowid
+            WHERE d.email_id = ?
+        """, (email_id,))
+        return jsonify([dict(row) for row in devices])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/notifications/assign-device', methods=['POST'])
+def assign_device_to_email():
+    try:
+        data = request.json or {}
+        device_id = data.get('device_id')
+        email_id = data.get('email_id')
+        if not device_id or not email_id:
+            return jsonify({'error': 'Paramètres device_id et email_id requis'}), 400
+
+        # Check if device and email exist
+        dev = query_db(DB_SDIS, "SELECT rowid FROM parc WHERE rowid = ?", (device_id,), one=True)
+        email_info = query_db(DB_SDIS, "SELECT id, email FROM notification_emails WHERE id = ?", (email_id,), one=True)
+        if not dev or not email_info:
+            return jsonify({'error': 'Appareil ou E-mail introuvable'}), 404
+
+        # Insert relationship
+        query_db(DB_SDIS, """
+            INSERT OR IGNORE INTO notification_email_devices (email_id, device_id)
+            VALUES (?, ?)
+        """, (email_id, device_id), commit=True)
+        
+        log_logic(f"Assigned Device ID {device_id} to Email ID {email_id}")
+
+        # Trigger immediate check in background for this email after assignment
+        if email_info and email_info['email']:
+            import threading
+            email = email_info['email'].strip()
+            log_logic(f"Immediate check triggered in background for {email} after device assignment")
+            threading.Thread(target=check_and_send_notifications, kwargs={'force': False, 'target_email': email}, daemon=True).start()
+
+        return jsonify({'success': True, 'message': 'Appareil lié avec succès aux notifications'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/notifications/active-devices', methods=['GET'])
+def get_active_notification_devices():
+    try:
+        devices = query_db(DB_SDIS, """
+            SELECT rowid AS id, num_serie, modele, cis, date_cle_a_faire, notification_active
+            FROM parc
+            WHERE notification_active = 1
+        """)
+        return jsonify([dict(row) for row in devices])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/notifications/emails/<int:email_id>/devices/<int:device_id>', methods=['DELETE'])
+def remove_device_from_email(email_id, device_id):
+    try:
+        query_db(DB_SDIS, """
+            DELETE FROM notification_email_devices 
+            WHERE email_id = ? AND device_id = ?
+        """, (email_id, device_id), commit=True)
+        
+        log_logic(f"Removed Device ID {device_id} from Email ID {email_id}")
+        return jsonify({'success': True, 'message': 'Association supprimée'})
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 # --- ADVANCED SEARCH ---
