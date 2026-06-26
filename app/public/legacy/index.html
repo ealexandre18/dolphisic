@@ -2153,6 +2153,7 @@
         let dashboardAvailableCis = [];
         let pendingDeviceNavigation = null;
         const selectedDeviceIds = new Set();
+        let currentBulkContextIsCryptable = true;
 
         function escapeHtml(value) {
           return String(value == null ? '' : value)
@@ -3645,24 +3646,11 @@
           if (!toolbar) return;
           const count = selectedDeviceIds.size;
           toolbar.querySelector('[data-bulk-count]').textContent = count + ' sélectionné' + (count > 1 ? 's' : '');
-          
-          // Hide bulk-cryptage button if any selected device or the current standard tab is BIP, INFRA, or ALERTE
-          const selectedCheckboxes = Array.from(document.querySelectorAll('[data-device-select]:checked'));
-          const selectedTypes = new Set(selectedCheckboxes.map(cb => String(cb.dataset.deviceType || '').toUpperCase().trim()));
-          const hasNonCryptable = Array.from(selectedTypes).some(type => ['BIP', 'INFRA', 'ALERTE'].includes(type));
-          
-          // Detect current standard view tab from headings inside main element
-          const headings = Array.from(document.querySelectorAll('main h1, main h2, main h3, main h4, main h5, main h6')).map(h => h.textContent.trim().toUpperCase());
-          const isBipTab = headings.some(txt => txt.includes('BIP'));
-          const isInfraTab = headings.some(txt => txt.includes('INFRASTRUCT'));
-          const isAlerteTab = headings.some(txt => txt.includes('ALERTE'));
-          const tabNonCryptable = isBipTab || isInfraTab || isAlerteTab;
-          
-          const hideCryptage = hasNonCryptable || tabNonCryptable;
 
           const btnCryptage = toolbar.querySelector('[data-bulk-cryptage]');
           if (btnCryptage) {
-            btnCryptage.style.display = hideCryptage ? 'none' : 'inline-block';
+            // Show cryptage button only for Portatifs / Mobiles — never for BIP, Infra, Alerte
+            btnCryptage.style.display = currentBulkContextIsCryptable ? 'inline-block' : 'none';
             btnCryptage.disabled = count === 0;
           }
 
@@ -3747,6 +3735,9 @@
         function installBulkSelection() {
           const devices = Array.isArray(window.DolphiSICLastDevices) ? window.DolphiSICLastDevices : [];
           if (!devices.length) return;
+          // Determine whether the current view allows cryptage update (not BIP / Infra / Alerte)
+          const isNonCryptable = d => { const t = String(d.type || '').toUpperCase(); return t.includes('BIP') || t.includes('INFRA') || t.includes('ALERTE'); };
+          currentBulkContextIsCryptable = !devices.every(isNonCryptable);
           const devicesBySerial = new Map(devices.map(device => [normalizedText(device.num_serie), device]));
           const validIds = new Set(devices.map(device => Number(device.id)));
           Array.from(selectedDeviceIds).forEach(id => {
