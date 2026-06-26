@@ -173,6 +173,32 @@ Nous avons finalisé l'intégration du redesign en résolvant tous les points bl
 
 ### 3. Ajustement des Espacements (Aération des Titres et Formulaires)
 - **Problème** : Le titre "Gestion des Destinataires" et les autres titres de section étaient trop collés aux éléments de formulaire (champs de saisie, tableaux, sélecteurs) à cause d'une règle globale `margin: 0;` sur les balises `h2`.
-- **Correction** : Injection de marges inférieures spécifiques inline sur les titres `h2` concernés dans les fichiers [dolphisic_redesign/public/legacy/index.html](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/dolphisic_redesign/public/legacy/index.html) et [dist/index.html](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/dist/index.html) :
+- Injection de marges inférieures spécifiques inline sur les titres `h2` concernés dans les fichiers [dolphisic_redesign/public/legacy/index.html](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/dolphisic_redesign/public/legacy/index.html) et [dist/index.html](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/dist/index.html) :
   - `margin-bottom: 16px` sous *Gestion des Destinataires* et *Sélectionnez une adresse pour la configurer* afin d'aérer les inputs.
   - `margin-bottom: 8px` sous *Équipements sous Surveillance Individuelle* pour offrir une transition douce vers le paragraphe de description.
+
+---
+
+## 🎨 Cartographie - Centrage et Alignement des Repères (Dernières modifications)
+
+### 1. Résolution de l'Alignement Horizontal Éparpillé des Noms (Bug de largeur Leaflet en Onglet Caché)
+- **Problème** : Lors de la première ouverture de l'application, l'onglet actif par défaut est le *Tableau de bord*. L'onglet *Cartographie* étant masqué (`display: none`), les tooltips permanents des points hauts et perroquets sont initialisés alors que le conteneur a une taille nulle. Le navigateur renvoie une largeur (`offsetWidth`) de `0` à Leaflet. Par conséquent, Leaflet applique ses coordonnées de positionnement absolu sans décalage horizontal, décalant le texte vers la droite proportionnellement à sa longueur (le texte commence au centre du marqueur et s'étend vers la droite). Cela donne une impression de noms éparpillés.
+- **Correction apportée** :
+  - **JS** : Attribution d'une classe spécifique `site-tooltip` pour les tooltips permanents des sites dans les fichiers [dist/assets/index-DyRupmtp.js](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/dist/assets/index-DyRupmtp.js), [dolphisic_redesign/public/assets/index-DyRupmtp.js](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/dolphisic_redesign/public/assets/index-DyRupmtp.js) et [dolphisic_redesign/public/legacy/assets/index-DyRupmtp.js](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/dolphisic_redesign/public/legacy/assets/index-DyRupmtp.js).
+  - **CSS** : Déclaration des styles `.site-tooltip.leaflet-tooltip` dans [dolphisic_redesign/public/legacy/index.html](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/dolphisic_redesign/public/legacy/index.html) et [dist/index.html](file:///c:/Users/Ewan%20Alexandre/Desktop/PROJET%20SDIS/dist/index.html) forçant sa largeur et sa hauteur à `0px` (`width: 0 !important; height: 0 !important; overflow: visible !important;`). Cela force Leaflet à toujours utiliser un décalage de `0` sans risque de double décalage.
+  - **Centrage des Libellés** : Le texte est placé à l'intérieur d'un élément enfant `strong` positionné de façon absolue avec `left: 50%` et `transform: translate(-50%, -100%)`. De cette manière, c'est le moteur de rendu CSS natif du navigateur qui calcule le centrage horizontal parfait du libellé par rapport aux coordonnées précises du repère, indépendamment de la taille initiale du conteneur ou du chargement de la police d'écriture.
+  - **Positionnement Vertical Constante** : Le libellé est placé à `bottom: 8px` du point de coordonnée Leaflet, ce qui le positionne parfaitement au-dessus du repère (`2px` de marge au-dessus des icônes `32x32px`), sans empiéter sur l'icône ni sur les zones voisines.
+  - **Cache Busting** : Le paramètre de version a été incrémenté à `v=20260626-carto-search` pour forcer le rechargement immédiat des fichiers mis à jour sans cache navigateur.
+
+### 2. Intégration d'une Barre de Recherche Dynamique et Filtrage des Repères
+- **Interface Utilisateur (Barre de recherche)** :
+  - Ajout d'un champ de saisie de recherche premium positionné de manière absolue en haut à gauche de la carte (`top: 20px; left: 60px; z-index: 1000`) avec un design sombre et translucide (Glassmorphism), aligné horizontalement avec les boutons d'actions flottants du haut-droit.
+  - Le champ de saisie intègre l'icône loupe 🔍 et le texte d'aide *"Rechercher un repère..."*.
+- **Moteur de Filtrage Instantané (React useEffect)** :
+  - **Déclaration d'état** : Ajout d'un état local `[searchText, setSearchText] = useState("")` pour piloter la valeur saisie.
+  - **Filtrage des Sites** : Lors de la saisie, les repères cartographiques (Points Hauts et Perroquets) dont le nom ne concorde pas avec la recherche sont exclus de la génération de couche (`n.current.addLayer`). Seuls les marqueurs correspondants restent affichés.
+  - **Filtrage des Textes Libres** : Les étiquettes libres créées par l'utilisateur sont filtrées et masquées de la même façon si leur texte ne concorde pas.
+  - **Filtrage Intelligent des Liaisons** : Pour éviter d'afficher des lignes radio suspendues dans le vide menant à des repères masqués, les liaisons sont également filtrées de manière dynamique. Une liaison ne reste visible que si son point de départ (`nom_a`), son point d'arrivée (`nom_b`) ou son libellé propre (`label`) correspond au critère de recherche.
+  - **Mise à jour en temps réel** : La variable `searchText` a été injectée dans le tableau des dépendances du `useEffect` de Leaflet pour redessiner instantanément la carte à chaque frappe de touche par l'utilisateur.
+
+
