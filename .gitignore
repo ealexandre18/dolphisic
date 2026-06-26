@@ -1,11 +1,25 @@
+# Variables d'environnement
 .env
+app/backend/.env
+
+# Caches Python
 __pycache__/
-.stfolder
-.agents/
-scratch/
-v2-design-pro/
+app/backend/__pycache__/
+
+# Dépendances Node.js
+app/node_modules/
+
+# Build Next.js
+app/.next/
+
+# Logs
 *.log
-dolphisic_redesign/backend/.env
-dolphisic_redesign/backend/notification_settings.json
-dolphisic_redesign/backend/logs/
-dolphisic_redesign/backend/__pycache__/
+app/backend/logs/
+
+# Fichiers de config runtime (non versionnés)
+app/backend/notification_settings.json
+app/backend/notification_history.json
+
+# Dossiers outils agent IA
+.agents/
+graphify-out/
