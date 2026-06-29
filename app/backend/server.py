@@ -755,6 +755,41 @@ def get_device_details(rowid):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+@app.route('/api/devices/<int:rowid>', methods=['PUT'])
+def update_device_details(rowid):
+    try:
+        data = request.json or {}
+        log_logic(f"Updating device details for ID={rowid}")
+        
+        # We define the list of allowed fields to update
+        fields = [
+            'cis', 'num_serie', 'modele', 'affectation', 'code_pocsag', 
+            'immatriculation', 'rfgi', 'classe_service', 'version_logiciel', 
+            'date_maj_cle', 'date_cle_a_faire', 'date_achat', 'date_prog',
+            'observation', 'verification', 'champ1', 'statut_activite'
+        ]
+        
+        set_clauses = []
+        params = []
+        for f in fields:
+            if f in data:
+                set_clauses.append(f"{f} = ?")
+                params.append(data[f])
+        
+        if not set_clauses:
+            return jsonify({'error': 'Aucun champ à modifier'}), 400
+            
+        params.append(rowid)
+        query = f"UPDATE parc SET {', '.join(set_clauses)} WHERE rowid = ?"
+        
+        query_db(DB_SDIS, query, params, commit=True)
+        log_logic(f"Device ID={rowid} successfully updated.")
+        return jsonify({'success': True, 'message': 'Équipement mis à jour avec succès'})
+    except Exception as e:
+        log_logic(f"Failed to update device ID={rowid}: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/devices/<int:rowid>/update-cryptage', methods=['POST'])
 def update_device_cryptage(rowid):
     data = request.json or {}
@@ -884,6 +919,12 @@ def add_device():
     observation = data.get('observation', '')
     date_maj_cle = data.get('date_maj_cle') or None
     
+    # Extract additional fields
+    code_pocsag = data.get('code_pocsag', '')
+    immatriculation = data.get('immatriculation', '')
+    rfgi = data.get('rfgi', '')
+    classe_service = data.get('classe_service', '')
+    
     # Calculate next key date automatically if date_maj_cle is set
     date_cle_a_faire = calculate_next_key_date(date_maj_cle) if date_maj_cle else None
 
@@ -899,12 +940,18 @@ def add_device():
             return jsonify({'error': f"Le modèle '{modele}' n'existe pas dans le référentiel matériel"}), 400
 
         query = """
-            INSERT INTO parc (cis, modele, num_serie, affectation, version_logiciel, observation, date_maj_cle, date_cle_a_faire, date_prog)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO parc (
+                cis, modele, num_serie, affectation, version_logiciel, observation, 
+                date_maj_cle, date_cle_a_faire, date_prog,
+                code_pocsag, immatriculation, rfgi, classe_service
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
         date_prog = datetime.now().strftime("%Y-%m-%d")
         new_rowid = query_db(DB_SDIS, query, 
-                             (cis, modele, num_serie, affectation, version_logiciel, observation, date_maj_cle, date_cle_a_faire, date_prog), 
+                             (cis, modele, num_serie, affectation, version_logiciel, observation, 
+                              date_maj_cle, date_cle_a_faire, date_prog,
+                              code_pocsag, immatriculation, rfgi, classe_service), 
                              commit=True)
         if date_maj_cle:
             record_cryptage_activity(1)
