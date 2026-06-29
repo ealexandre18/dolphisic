@@ -1441,6 +1441,25 @@ def toggle_device_notification(rowid):
         return jsonify({'error': str(e)}), 500
 
 
+def clear_notification_history_entry(email, device_id=None):
+    history_file = os.path.join(SERVER_DIR, "notification_history.json")
+    if os.path.exists(history_file):
+        try:
+            with open(history_file, 'r', encoding='utf-8') as f:
+                hdata = json.load(f)
+            sent_alerts = hdata.get('sent_alerts', [])
+            if device_id is not None:
+                sent_alerts = [a for a in sent_alerts if not (a.get('email') == email and a.get('device_id') == device_id)]
+            else:
+                sent_alerts = [a for a in sent_alerts if a.get('email') != email]
+            hdata['sent_alerts'] = sent_alerts
+            with open(history_file, 'w', encoding='utf-8') as f:
+                json.dump(hdata, f, indent=4)
+            log_logic(f"Cleared notification history for email={email}, device_id={device_id}")
+        except Exception as e:
+            log_logic(f"Failed to clear alert history: {e}")
+
+
 # --- NEW NOTIFICATIONS RELATIONAL API ---
 @app.route('/api/notifications/emails', methods=['GET', 'POST'])
 def handle_notification_emails():
@@ -1480,11 +1499,17 @@ def handle_notification_emails():
 def handle_single_notification_email(email_id):
     if request.method == 'DELETE':
         try:
+            # Get email address before deleting
+            email_info = query_db(DB_SDIS, "SELECT email FROM notification_emails WHERE id = ?", (email_id,), one=True)
             # Delete manually assigned devices to avoid foreign key issues
             query_db(DB_SDIS, "DELETE FROM notification_email_devices WHERE email_id = ?", (email_id,), commit=True)
             # Delete email
             query_db(DB_SDIS, "DELETE FROM notification_emails WHERE id = ?", (email_id,), commit=True)
             log_logic(f"Deleted notification email ID: {email_id}")
+            
+            if email_info and email_info['email']:
+                clear_notification_history_entry(email_info['email'].strip())
+                
             return jsonify({'success': True, 'message': 'E-mail supprimé avec succès'})
         except Exception as e:
             return jsonify({'error': str(e)}), 500
@@ -1524,7 +1549,7 @@ def handle_single_notification_email(email_id):
                 if os.path.exists(history_file):
                     try:
                         with open(history_file, 'r', encoding='utf-8') as f:
-                            hdata = json.load(f)
+                             hdata = json.load(f)
                         sent_alerts = hdata.get('sent_alerts', [])
                         sent_alerts = [a for a in sent_alerts if a.get('email') != email]
                         with open(history_file, 'w', encoding='utf-8') as f:
@@ -1535,7 +1560,7 @@ def handle_single_notification_email(email_id):
             if enabled == 1:
                 import threading
                 log_logic(f"Immediate check triggered in background for {email} after config change")
-                threading.Thread(target=check_and_send_notifications, kwargs={'force': False, 'target_email': email}, daemon=True).start()
+                threading.Thread(target=check_and_send_notifications, kwargs={'force': True, 'target_email': email}, daemon=True).start()
 
         return jsonify({'success': True, 'message': 'Configuration mise à jour'})
     except Exception as e:
@@ -1580,12 +1605,10 @@ def assign_device_to_email():
         
         log_logic(f"Assigned Device ID {device_id} to Email ID {email_id}")
 
-        # Trigger immediate check in background for this email after assignment
+        # Clear history for this email & device to allow sending on next save
         if email_info and email_info['email']:
-            import threading
             email = email_info['email'].strip()
-            log_logic(f"Immediate check triggered in background for {email} after device assignment")
-            threading.Thread(target=check_and_send_notifications, kwargs={'force': False, 'target_email': email}, daemon=True).start()
+            clear_notification_history_entry(email, device_id)
 
         return jsonify({'success': True, 'message': 'Appareil lié avec succès aux notifications'})
     except Exception as e:
@@ -1608,12 +1631,19 @@ def get_active_notification_devices():
 @app.route('/api/notifications/emails/<int:email_id>/devices/<int:device_id>', methods=['DELETE'])
 def remove_device_from_email(email_id, device_id):
     try:
+        # Get email address before deleting
+        email_info = query_db(DB_SDIS, "SELECT email FROM notification_emails WHERE id = ?", (email_id,), one=True)
+        
         query_db(DB_SDIS, """
             DELETE FROM notification_email_devices 
             WHERE email_id = ? AND device_id = ?
         """, (email_id, device_id), commit=True)
         
         log_logic(f"Removed Device ID {device_id} from Email ID {email_id}")
+        
+        if email_info and email_info['email']:
+            clear_notification_history_entry(email_info['email'].strip(), device_id)
+            
         return jsonify({'success': True, 'message': 'Association supprimée'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
