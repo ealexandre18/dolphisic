@@ -1520,17 +1520,14 @@
 
       .dolphi-notif-recipients-panel .dolphi-notif-table th:nth-child(2),
       .dolphi-notif-recipients-panel .dolphi-notif-table td:nth-child(2) {
-        width: 106px;
+        width: 128px;
+        text-align: center;
       }
 
       .dolphi-notif-recipients-panel .dolphi-notif-table th:nth-child(3),
       .dolphi-notif-recipients-panel .dolphi-notif-table td:nth-child(3) {
-        width: 84px;
-      }
-
-      .dolphi-notif-recipients-panel .dolphi-notif-table th:nth-child(4),
-      .dolphi-notif-recipients-panel .dolphi-notif-table td:nth-child(4) {
-        width: 82px;
+        width: 92px;
+        text-align: center;
       }
 
       .dolphi-notif-recipients-panel .dolphi-notif-table th,
@@ -1562,8 +1559,26 @@
 
       .dolphi-notif-row-actions {
         width: 86px;
-        text-align: right !important;
+        text-align: center !important;
         white-space: nowrap;
+      }
+
+      .dolphi-solid-menu {
+        background: var(--card-bg-solid, #1b263b) !important;
+        background-color: var(--card-bg-solid, #1b263b) !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        box-shadow: 0 18px 44px rgba(0, 0, 0, 0.38) !important;
+      }
+
+      .dolphi-solid-menu button:not(.btn-primary):not([style*="var(--primary)"]) {
+        background-color: rgba(15, 23, 42, 0.96) !important;
+      }
+
+      .dolphi-solid-menu input,
+      .dolphi-solid-menu select,
+      .dolphi-solid-menu textarea {
+        background-color: #111a2e !important;
       }
 
       .dolphi-notif-config-panel.notifications-locked .dolphi-mode-card,
@@ -1610,16 +1625,30 @@
         height: 15px;
       }
 
+      .dolphi-notif-config-btn {
+        width: auto;
+        min-width: 0;
+        padding: 0 8px;
+        gap: 5px;
+        font-size: 0.72rem;
+        font-weight: 800;
+      }
+
       .dolphi-pill {
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         width: fit-content;
         max-width: 100%;
-        padding: 4px 8px;
+        min-height: 26px;
+        padding: 5px 13px 6px;
         border-radius: 999px;
         font-size: 0.7rem;
         font-weight: 800;
-        line-height: 1.1;
+        line-height: 1.25;
+        box-sizing: border-box;
+        white-space: nowrap;
+        overflow: visible;
       }
 
       .dolphi-pill.success { background: rgba(34,197,94,0.14); color: #4ade80; }
@@ -2063,6 +2092,294 @@
         display: grid !important;
         grid-template-columns: 1fr 1fr !important;
         gap: 24px !important;
+      }
+
+      .dolphi-carto-enhanced-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        padding: 12px 10px 12px 16px;
+        overflow: visible;
+      }
+
+      .dolphi-carto-content-primed > :not(.dolphi-carto-prime):not(.dolphi-carto-tasks-panel):not(.dolphi-carto-log-panel) {
+        display: none !important;
+      }
+
+      .dolphi-carto-panel-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+      }
+
+      .dolphi-carto-panel-title {
+        margin: 0;
+        color: var(--text-main);
+        font-size: 0.98rem;
+        font-weight: 800;
+        line-height: 1.7;
+        overflow: visible;
+      }
+
+      .dolphi-carto-panel-subtitle {
+        margin: 2px 0 0;
+        color: var(--text-muted);
+        font-size: 0.78rem;
+        line-height: 1.55;
+        overflow: visible;
+      }
+
+      .dolphi-carto-small-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 34px;
+        padding: 8px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 9px;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text-main);
+        font-weight: 800;
+        font-size: 0.78rem;
+        cursor: pointer;
+        transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+      }
+
+      .dolphi-carto-small-btn:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.18);
+      }
+
+      .dolphi-carto-primary-btn {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: #fff;
+      }
+
+      .dolphi-carto-danger-btn {
+        color: #ff6b7a;
+      }
+
+      .dolphi-carto-form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.14);
+      }
+
+      .dolphi-carto-form[hidden],
+      .dolphi-carto-small-btn[hidden] {
+        display: none !important;
+      }
+
+      .dolphi-carto-form-row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .dolphi-carto-input,
+      .dolphi-carto-textarea,
+      .dolphi-stock-cis-select {
+        width: 100%;
+        min-height: 40px;
+        padding: 10px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.18);
+        color: var(--text-main);
+        font: inherit;
+        font-size: 0.86rem;
+        outline: none;
+        box-sizing: border-box;
+      }
+
+      .dolphi-carto-textarea {
+        min-height: 84px;
+        resize: vertical;
+        line-height: 1.45;
+      }
+
+      .dolphi-carto-input:focus,
+      .dolphi-carto-textarea:focus,
+      .dolphi-stock-cis-select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.14);
+      }
+
+      .dolphi-carto-task-list,
+      .dolphi-carto-log-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .dolphi-carto-task-card,
+      .dolphi-carto-log-card {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: start;
+        padding: 11px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.035);
+      }
+
+      .dolphi-carto-task-card.is-done {
+        background: rgba(42, 157, 143, 0.08);
+        border-color: rgba(42, 157, 143, 0.24);
+      }
+
+      .dolphi-carto-task-check {
+        width: 18px;
+        height: 18px;
+        margin-top: 2px;
+        accent-color: var(--primary);
+        cursor: pointer;
+      }
+
+      .dolphi-carto-item-title {
+        color: var(--text-main);
+        font-size: 0.86rem;
+        font-weight: 800;
+        line-height: 1.35;
+        word-break: break-word;
+      }
+
+      .dolphi-carto-item-meta,
+      .dolphi-carto-item-desc {
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        line-height: 1.35;
+      }
+
+      .dolphi-carto-item-desc {
+        margin-top: 3px;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .dolphi-carto-history {
+        margin-top: 2px;
+        padding-top: 12px;
+        border-top: 1px solid var(--border-color);
+      }
+
+      .dolphi-carto-history-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        color: var(--text-main);
+        font-weight: 800;
+        font-size: 0.84rem;
+      }
+
+      .dolphi-carto-history-list {
+        max-height: 156px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        padding-right: 4px;
+      }
+
+      .dolphi-carto-empty {
+        padding: 14px;
+        border: 1px dashed var(--border-color);
+        border-radius: 12px;
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        text-align: center;
+      }
+
+      .dolphi-carto-log-card {
+        grid-template-columns: minmax(0, 1fr) auto;
+      }
+
+      .dolphi-carto-log-actions {
+        display: flex;
+        gap: 6px;
+      }
+
+      .dolphi-carto-icon-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text-main);
+        cursor: pointer;
+      }
+
+      .dolphi-carto-icon-btn:hover {
+        border-color: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .dolphi-stock-cis-helper {
+        display: none !important;
+        margin-top: 0;
+        color: var(--text-muted);
+        font-size: 0.72rem;
+        line-height: 1.35;
+      }
+
+      .dolphi-stock-add-modal {
+        padding: 30px !important;
+      }
+
+      .dolphi-stock-add-modal h3 {
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+        margin-bottom: 30px !important;
+        line-height: 1.25 !important;
+      }
+
+      .dolphi-stock-add-modal h3 svg {
+        display: block !important;
+        flex: 0 0 auto !important;
+        margin: 0 !important;
+        transform: translateY(1px);
+      }
+
+      .dolphi-stock-add-modal form {
+        gap: 28px !important;
+      }
+
+      .dolphi-stock-add-modal form > div {
+        gap: 24px !important;
+      }
+
+      .dolphi-stock-add-modal label {
+        display: block !important;
+        margin-bottom: 12px !important;
+      }
+
+      .dolphi-stock-add-modal input,
+      .dolphi-stock-add-modal select,
+      .dolphi-stock-add-modal textarea,
+      .dolphi-stock-add-modal .dolphi-stock-cis-select {
+        min-height: 50px !important;
+      }
+
+      .dolphi-stock-add-modal textarea {
+        min-height: 118px !important;
       }
     </style>
     <script>
@@ -3879,10 +4196,10 @@
                   <div class="dolphi-notif-table-wrap">
                     <table class="dolphi-notif-table">
                       <thead>
-                        <tr><th>Email</th><th>Mode</th><th>Statut</th><th>Actions</th></tr>
+                        <tr><th>Email</th><th>Mode</th><th>Statut</th></tr>
                       </thead>
                       <tbody id="emails-list-tbody">
-                        <tr><td colspan="4" class="dolphi-notif-empty">Chargement des adresses...</td></tr>
+                        <tr><td colspan="3" class="dolphi-notif-empty">Chargement des adresses...</td></tr>
                       </tbody>
                     </table>
                   </div>
@@ -3917,7 +4234,7 @@
                         <button type="button" class="dolphi-mode-card" data-mode="devices" role="radio" aria-checked="true">
                           <span class="dolphi-mode-radio"></span>
                           <span class="dolphi-mode-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"></path><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"></path></svg></span>
-                          <span><strong>Appareils spécifiques</strong><small>Recevoir uniquement les notifications des appareils associés.</small></span>
+                          <span><strong>Personnalisé</strong><small>Recevoir uniquement les notifications des appareils associés.</small></span>
                         </button>
                       </div>
                     </div>
@@ -4108,7 +4425,7 @@
 
 
           function modeLabel(item) {
-            return item && item.global_enabled ? 'Toutes les alertes' : 'Appareils spécifiques';
+            return item && item.global_enabled ? 'Toutes les alertes' : 'Personnalisé';
           }
 
           function statusLabel(item) {
@@ -4170,48 +4487,9 @@
               tdMode.innerHTML = '<span class="dolphi-pill info">' + escapeHtml(modeLabel(item)) + '</span>';
               const tdStatus = document.createElement('td');
               tdStatus.innerHTML = '<span class="dolphi-pill ' + (item.enabled ? 'success' : 'danger') + '">' + escapeHtml(statusLabel(item)) + '</span>';
-              const tdAction = document.createElement('td');
-              tdAction.className = 'dolphi-notif-row-actions';
-
-              const editBtn = document.createElement('button');
-              editBtn.type = 'button';
-              editBtn.className = 'dolphi-notif-icon-btn';
-              editBtn.title = 'Configurer ce destinataire';
-              editBtn.setAttribute('aria-label', 'Configurer ' + item.email);
-              editBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>';
-              editBtn.addEventListener('click', (e) => { e.stopPropagation(); selectEmail(item); });
-
-              const delBtn = document.createElement('button');
-              delBtn.type = 'button';
-              delBtn.className = 'dolphi-notif-icon-btn danger';
-              delBtn.title = 'Supprimer le destinataire';
-              delBtn.setAttribute('aria-label', 'Supprimer ' + item.email);
-              delBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>';
-              delBtn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                if (!confirm("Supprimer l'adresse " + item.email + " et toutes ses liaisons ?")) return;
-                try {
-                  await fetchJson('/api/notifications/emails/' + item.id, { method: 'DELETE' });
-                  if (selectedEmail && selectedEmail.id === item.id) {
-                    selectedEmail = null;
-                    assignedDevices = [];
-                    localStorage.removeItem('dolphi_active_email_id');
-                    localStorage.removeItem('dolphi_active_email_name');
-                    disableConfigPanel();
-                  }
-                  await loadEmails();
-                  showFeedback('Destinataire supprimé avec succès.');
-                } catch (err) {
-                  showFeedback(err.message, true);
-                }
-              });
-
-              tdAction.appendChild(editBtn);
-              tdAction.appendChild(delBtn);
               tr.appendChild(tdEmail);
               tr.appendChild(tdMode);
               tr.appendChild(tdStatus);
-              tr.appendChild(tdAction);
               emailsListTbody.appendChild(tr);
             });
           }
@@ -4973,6 +5251,494 @@
           updateBulkToolbar();
         }
 
+        let cartoSitesCache = null;
+        let centresCache = null;
+
+        function normalizeLoose(value) {
+          return String(value || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toLowerCase();
+        }
+
+        async function getCartoSitesCache() {
+          if (cartoSitesCache) return cartoSitesCache;
+          const data = await fetchJson('/api/carto');
+          cartoSitesCache = Array.isArray(data.sites) ? data.sites : [];
+          return cartoSitesCache;
+        }
+
+        async function refreshCartoSitesCache() {
+          cartoSitesCache = null;
+          return getCartoSitesCache();
+        }
+
+        function findCartoDrawer() {
+          return Array.from(document.querySelectorAll('#root .glass')).find(panel => {
+            if (!panel.offsetParent) return false;
+            const text = normalizeLoose(panel.textContent);
+            return text.includes('inventaire') && text.includes('log') && text.includes('taches');
+          });
+        }
+
+        function findCartoTabBar(drawer) {
+          return Array.from(drawer.querySelectorAll('div')).find(div => {
+            const buttons = Array.from(div.querySelectorAll(':scope > button'));
+            const labels = buttons.map(button => normalizeLoose(button.textContent)).join(' ');
+            return buttons.length >= 3 && labels.includes('inventaire') && labels.includes('log');
+          });
+        }
+
+        function getCartoContent(drawer) {
+          const tabBar = findCartoTabBar(drawer);
+          return tabBar && tabBar.nextElementSibling ? tabBar.nextElementSibling : null;
+        }
+
+        function isCartoEnhancedTabLabel(value) {
+          const label = normalizeLoose(value);
+          return label.includes('taches') || label.includes('log');
+        }
+
+        function primeCartoEnhancedContent(drawer) {
+          const content = getCartoContent(drawer);
+          if (!content) return;
+          content.classList.add('dolphi-carto-content-primed');
+          const existingPanel = content.querySelector(':scope > .dolphi-carto-tasks-panel, :scope > .dolphi-carto-log-panel');
+          Array.from(content.children).forEach(child => {
+            child.style.display = child === existingPanel ? '' : 'none';
+          });
+          if (!existingPanel && !content.querySelector(':scope > .dolphi-carto-prime')) {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'dolphi-carto-prime dolphi-carto-enhanced-panel';
+            placeholder.innerHTML = '<div class="dolphi-carto-empty">Chargement...</div>';
+            content.appendChild(placeholder);
+          }
+        }
+
+        function normalizeCartoDrawerSpacing(drawer) {
+          const tabBar = findCartoTabBar(drawer);
+          if (tabBar) {
+            tabBar.style.overflow = 'visible';
+            tabBar.style.paddingTop = '4px';
+            Array.from(tabBar.querySelectorAll(':scope > button')).forEach(button => {
+              button.style.lineHeight = '1.5';
+              button.style.paddingTop = '10px';
+              button.style.paddingBottom = '10px';
+              button.style.overflow = 'visible';
+            });
+          }
+          const heading = drawer.querySelector('h3');
+          if (heading) {
+            heading.style.lineHeight = '1.35';
+            heading.style.overflow = 'visible';
+          }
+        }
+
+        function getCartoActivePanel(drawer, content) {
+          if (!content) return null;
+          const tabBar = findCartoTabBar(drawer);
+          if (tabBar) {
+            const buttons = Array.from(tabBar.querySelectorAll(':scope > button'));
+            const activeButton = buttons.find(button => {
+              const style = button.getAttribute('style') || '';
+              return style.includes('var(--primary)') || button.style.borderBottomColor === 'var(--primary)' || button.style.color === 'var(--primary)';
+            });
+            const label = normalizeLoose(activeButton && activeButton.textContent);
+            if (label.includes('taches')) return 'tasks';
+            if (label.includes('log')) return 'log';
+            if (activeButton) return null;
+          }
+          const clone = content.cloneNode(true);
+          clone.querySelectorAll('.dolphi-carto-tasks-panel, .dolphi-carto-log-panel').forEach(panel => panel.remove());
+          const text = normalizeLoose(clone.textContent);
+          if (text.includes('historique main courante') || text.includes('consigner evenement')) return 'log';
+          if (text.includes('taches et operations') || (text.includes('enregistrer les') && content.querySelector('textarea'))) return 'tasks';
+          return null;
+        }
+
+        async function getActiveCartoSite(drawer) {
+          const heading = Array.from(drawer.querySelectorAll('h3')).find(el => el.offsetParent && el.textContent.trim());
+          if (!heading) return null;
+          const name = normalizeLoose(heading.textContent);
+          let sites = await getCartoSitesCache();
+          let site = sites.find(site => normalizeLoose(site.nom) === name);
+          if (!site) {
+            sites = await refreshCartoSitesCache();
+            site = sites.find(site => normalizeLoose(site.nom) === name);
+          }
+          return site || null;
+        }
+
+        function prepareCartoEnhancedContent(content, panelClass) {
+          content.classList.remove('dolphi-carto-content-primed');
+          content.querySelectorAll(':scope > .dolphi-carto-prime').forEach(panel => panel.remove());
+          Array.from(content.children).forEach(child => {
+            if (child.classList.contains(panelClass)) {
+              child.style.display = '';
+            } else {
+              child.style.display = 'none';
+            }
+          });
+          let panel = content.querySelector(':scope > .' + panelClass);
+          if (!panel) {
+            panel = document.createElement('div');
+            panel.className = panelClass + ' dolphi-carto-enhanced-panel';
+            content.appendChild(panel);
+          }
+          return panel;
+        }
+
+        function clearCartoEnhancedContent(content) {
+          if (!content) return;
+          content.querySelectorAll(':scope > .dolphi-carto-tasks-panel, :scope > .dolphi-carto-log-panel').forEach(panel => panel.remove());
+          Array.from(content.children).forEach(child => { child.style.display = ''; });
+        }
+
+        function localDateTimeInput(value) {
+          const date = value ? new Date(String(value).replace(' ', 'T')) : new Date();
+          if (Number.isNaN(date.getTime())) return '';
+          const pad = part => String(part).padStart(2, '0');
+          return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+        }
+
+        function displayCartoDate(value) {
+          if (!value) return '';
+          const date = new Date(String(value).replace(' ', 'T'));
+          if (Number.isNaN(date.getTime())) return value;
+          return date.toLocaleString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+        }
+
+        async function renderCartoTasksPanel(content, site) {
+          const panel = prepareCartoEnhancedContent(content, 'dolphi-carto-tasks-panel');
+          if (panel.dataset.loading === '1') return;
+          const signature = String(site.id);
+          if (panel.dataset.signature === signature && panel.dataset.rendered === '1') return;
+          panel.dataset.signature = signature;
+          panel.dataset.loading = '1';
+          panel.innerHTML = '<div class="dolphi-carto-empty">Chargement des taches...</div>';
+          try {
+            const tasks = await fetchJson(`/api/carto/sites/${site.id}/tasks`);
+            panel.dataset.rendered = '1';
+            panel.innerHTML = `
+              <div class="dolphi-carto-panel-head">
+                <div>
+                  <h4 class="dolphi-carto-panel-title">Taches du site</h4>
+                  <p class="dolphi-carto-panel-subtitle">Ajoutez les operations a prevoir, puis validez-les quand elles sont terminees.</p>
+                </div>
+                <button type="button" class="dolphi-carto-small-btn dolphi-carto-primary-btn" data-carto-add-task>Ajouter</button>
+              </div>
+              <form class="dolphi-carto-form" data-carto-task-form hidden>
+                <input class="dolphi-carto-input" name="nom" placeholder="Nom de la tache" required>
+                <textarea class="dolphi-carto-textarea" name="description" placeholder="Description, contexte, materiel concerne..."></textarea>
+                <div class="dolphi-carto-form-row">
+                  <button type="submit" class="dolphi-carto-small-btn dolphi-carto-primary-btn">Enregistrer</button>
+                  <button type="button" class="dolphi-carto-small-btn" data-carto-cancel-task>Annuler</button>
+                </div>
+              </form>
+              <div class="dolphi-carto-task-list" data-carto-active-tasks></div>
+              <div class="dolphi-carto-history">
+                <div class="dolphi-carto-history-head">
+                  <span>Historique des taches faites</span>
+                  <span>${tasks.filter(task => Number(task.fait)).length}</span>
+                </div>
+                <div class="dolphi-carto-history-list" data-carto-done-tasks></div>
+              </div>
+            `;
+
+            const form = panel.querySelector('[data-carto-task-form]');
+            const addTaskBtn = panel.querySelector('[data-carto-add-task]');
+            addTaskBtn.addEventListener('click', () => {
+              form.hidden = false;
+              addTaskBtn.hidden = true;
+              form.elements.nom.focus();
+            });
+            panel.querySelector('[data-carto-cancel-task]').addEventListener('click', () => {
+              form.reset();
+              form.hidden = true;
+              addTaskBtn.hidden = false;
+            });
+            form.addEventListener('submit', async event => {
+              event.preventDefault();
+              const nom = form.elements.nom.value.trim();
+              const description = form.elements.description.value.trim();
+              if (!nom) return;
+              await fetchJson(`/api/carto/sites/${site.id}/tasks`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nom, description })
+              });
+              panel.dataset.rendered = '0';
+              renderCartoTasksPanel(content, site);
+            });
+
+            const activeBox = panel.querySelector('[data-carto-active-tasks]');
+            const doneBox = panel.querySelector('[data-carto-done-tasks]');
+            const activeTasks = tasks.filter(task => !Number(task.fait));
+            const doneTasks = tasks.filter(task => Number(task.fait));
+            activeBox.innerHTML = activeTasks.length ? '' : '<div class="dolphi-carto-empty">Aucune tache active pour ce site.</div>';
+            doneBox.innerHTML = doneTasks.length ? '' : '<div class="dolphi-carto-empty">Aucune tache terminee.</div>';
+
+            activeTasks.forEach(task => {
+              const row = document.createElement('div');
+              row.className = 'dolphi-carto-task-card';
+              row.innerHTML = `
+                <input type="checkbox" class="dolphi-carto-task-check" title="Marquer comme fait">
+                <div>
+                  <div class="dolphi-carto-item-title">${escapeHtml(task.nom)}</div>
+                  ${task.description ? `<div class="dolphi-carto-item-desc">${escapeHtml(task.description)}</div>` : ''}
+                  <div class="dolphi-carto-item-meta">Cree le ${escapeHtml(displayCartoDate(task.created_at))}</div>
+                </div>
+                <button type="button" class="dolphi-carto-icon-btn dolphi-carto-danger-btn" title="Supprimer">×</button>
+              `;
+              row.querySelector('input').addEventListener('change', async event => {
+                const confirmed = window.confirm(`Confirmer la fin de la tache "${task.nom}" ?`);
+                if (!confirmed) {
+                  event.target.checked = false;
+                  return;
+                }
+                await fetchJson(`/api/carto/tasks/${task.id}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ fait: true })
+                });
+                panel.dataset.rendered = '0';
+                renderCartoTasksPanel(content, site);
+              });
+              row.querySelector('button').addEventListener('click', async () => {
+                if (!window.confirm(`Supprimer la tache "${task.nom}" ?`)) return;
+                await fetchJson(`/api/carto/tasks/${task.id}/delete`, { method: 'POST' });
+                panel.dataset.rendered = '0';
+                renderCartoTasksPanel(content, site);
+              });
+              activeBox.appendChild(row);
+            });
+
+            doneTasks.forEach(task => {
+              const row = document.createElement('div');
+              row.className = 'dolphi-carto-task-card is-done';
+              row.innerHTML = `
+                <input type="checkbox" class="dolphi-carto-task-check" checked disabled>
+                <div>
+                  <div class="dolphi-carto-item-title">${escapeHtml(task.nom)}</div>
+                  ${task.description ? `<div class="dolphi-carto-item-desc">${escapeHtml(task.description)}</div>` : ''}
+                  <div class="dolphi-carto-item-meta">Fait le ${escapeHtml(displayCartoDate(task.completed_at || task.created_at))}</div>
+                </div>
+                <button type="button" class="dolphi-carto-icon-btn dolphi-carto-danger-btn" title="Supprimer de l'historique">×</button>
+              `;
+              row.querySelector('button').addEventListener('click', async () => {
+                if (!window.confirm(`Supprimer "${task.nom}" de l'historique ?`)) return;
+                await fetchJson(`/api/carto/tasks/${task.id}/delete`, { method: 'POST' });
+                panel.dataset.rendered = '0';
+                renderCartoTasksPanel(content, site);
+              });
+              doneBox.appendChild(row);
+            });
+          } catch (err) {
+            panel.innerHTML = `<div class="dolphi-carto-empty">Erreur de chargement : ${escapeHtml(err.message)}</div>`;
+          } finally {
+            panel.dataset.loading = '0';
+          }
+        }
+
+        async function renderCartoLogPanel(content, site) {
+          const panel = prepareCartoEnhancedContent(content, 'dolphi-carto-log-panel');
+          if (panel.dataset.loading === '1') return;
+          const signature = String(site.id);
+          if (panel.dataset.signature === signature && panel.dataset.rendered === '1') return;
+          panel.dataset.signature = signature;
+          panel.dataset.loading = '1';
+          panel.innerHTML = '<div class="dolphi-carto-empty">Chargement du journal...</div>';
+          try {
+            const logs = await fetchJson(`/api/carto/sites/${site.id}/main_courante`);
+            panel.dataset.rendered = '1';
+            panel.innerHTML = `
+              <div class="dolphi-carto-panel-head">
+                <div>
+                  <h4 class="dolphi-carto-panel-title">Journal du site</h4>
+                  <p class="dolphi-carto-panel-subtitle">Consignez les interventions et gardez un historique datable.</p>
+                </div>
+                <button type="button" class="dolphi-carto-small-btn dolphi-carto-primary-btn" data-carto-add-log>Ajouter</button>
+              </div>
+              <form class="dolphi-carto-form" data-carto-log-form hidden>
+                <input class="dolphi-carto-input" type="datetime-local" name="date_heure" required>
+                <textarea class="dolphi-carto-textarea" name="evenement" placeholder="Passage technicien, incident, controle..." required></textarea>
+                <div class="dolphi-carto-form-row">
+                  <button type="submit" class="dolphi-carto-small-btn dolphi-carto-primary-btn" data-carto-log-submit>Consigner</button>
+                  <button type="button" class="dolphi-carto-small-btn" data-carto-log-cancel>Annuler</button>
+                </div>
+              </form>
+              <div class="dolphi-carto-history">
+                <div class="dolphi-carto-history-head">
+                  <span>Historique main courante</span>
+                  <span>${logs.length}</span>
+                </div>
+                <div class="dolphi-carto-log-list" data-carto-log-list></div>
+              </div>
+            `;
+            const form = panel.querySelector('[data-carto-log-form]');
+            const dateInput = form.elements.date_heure;
+            const eventInput = form.elements.evenement;
+            const submitBtn = panel.querySelector('[data-carto-log-submit]');
+            const cancelBtn = panel.querySelector('[data-carto-log-cancel]');
+            const addLogBtn = panel.querySelector('[data-carto-add-log]');
+
+            function resetLogForm() {
+              form.dataset.editingId = '';
+              dateInput.value = localDateTimeInput();
+              eventInput.value = '';
+              submitBtn.textContent = 'Consigner';
+              form.hidden = true;
+              addLogBtn.hidden = false;
+            }
+
+            addLogBtn.addEventListener('click', () => {
+              form.dataset.editingId = '';
+              dateInput.value = localDateTimeInput();
+              eventInput.value = '';
+              submitBtn.textContent = 'Consigner';
+              form.hidden = false;
+              addLogBtn.hidden = true;
+              eventInput.focus();
+            });
+            cancelBtn.addEventListener('click', resetLogForm);
+            form.addEventListener('submit', async event => {
+              event.preventDefault();
+              const payload = { date_heure: dateInput.value, evenement: eventInput.value.trim() };
+              if (!payload.evenement) return;
+              const editingId = form.dataset.editingId;
+              await fetchJson(editingId ? `/api/carto/main_courante/${editingId}` : `/api/carto/sites/${site.id}/main_courante`, {
+                method: editingId ? 'PATCH' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
+              panel.dataset.rendered = '0';
+              renderCartoLogPanel(content, site);
+            });
+
+            const list = panel.querySelector('[data-carto-log-list]');
+            list.innerHTML = logs.length ? '' : '<div class="dolphi-carto-empty">Aucun evenement consigne.</div>';
+            logs.forEach(item => {
+              const row = document.createElement('div');
+              row.className = 'dolphi-carto-log-card';
+              row.innerHTML = `
+                <div>
+                  <div class="dolphi-carto-item-title">${escapeHtml(item.evenement)}</div>
+                  <div class="dolphi-carto-item-meta">${escapeHtml(displayCartoDate(item.date_heure))}</div>
+                </div>
+                <div class="dolphi-carto-log-actions">
+                  <button type="button" class="dolphi-carto-icon-btn" title="Modifier">✎</button>
+                  <button type="button" class="dolphi-carto-icon-btn dolphi-carto-danger-btn" title="Supprimer">×</button>
+                </div>
+              `;
+              const buttons = row.querySelectorAll('button');
+              buttons[0].addEventListener('click', () => {
+                form.dataset.editingId = String(item.id);
+                dateInput.value = localDateTimeInput(item.date_heure);
+                eventInput.value = item.evenement || '';
+                submitBtn.textContent = 'Enregistrer la modification';
+                form.hidden = false;
+                addLogBtn.hidden = true;
+                form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                eventInput.focus();
+              });
+              buttons[1].addEventListener('click', async () => {
+                if (!window.confirm('Supprimer cet evenement du journal ?')) return;
+                await fetchJson(`/api/carto/main_courante/${item.id}/delete`, { method: 'POST' });
+                panel.dataset.rendered = '0';
+                renderCartoLogPanel(content, site);
+              });
+              list.appendChild(row);
+            });
+          } catch (err) {
+            panel.innerHTML = `<div class="dolphi-carto-empty">Erreur de chargement : ${escapeHtml(err.message)}</div>`;
+          } finally {
+            panel.dataset.loading = '0';
+          }
+        }
+
+        async function enhanceCartoPanels() {
+          const drawer = findCartoDrawer();
+          if (!drawer) return;
+          normalizeCartoDrawerSpacing(drawer);
+          const content = getCartoContent(drawer);
+          if (!content) return;
+          const activePanel = getCartoActivePanel(drawer, content);
+          if (!activePanel) {
+            clearCartoEnhancedContent(content);
+            return;
+          }
+          const site = await getActiveCartoSite(drawer).catch(() => null);
+          if (!site) return;
+          if (activePanel === 'tasks') renderCartoTasksPanel(content, site);
+          if (activePanel === 'log') renderCartoLogPanel(content, site);
+        }
+
+        async function getCentresCache() {
+          if (centresCache) return centresCache;
+          centresCache = await fetchJson('/api/centres');
+          return centresCache;
+        }
+
+        function setReactInputValue(input, value) {
+          const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+          setter.call(input, value);
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        async function enhanceStockCisSelect() {
+          const modalTitle = Array.from(document.querySelectorAll('h3')).find(title =>
+            title.offsetParent && normalizeLoose(title.textContent).includes('ajouter un equipement au stock')
+          );
+          if (!modalTitle) return;
+          const modal = modalTitle.closest('.glass') || modalTitle.closest('div');
+          if (!modal) return;
+          modal.classList.add('dolphi-stock-add-modal');
+          const cisLabel = Array.from(modal.querySelectorAll('label')).find(label => normalizeLoose(label.textContent) === 'cis');
+          if (!cisLabel) return;
+          const group = cisLabel.parentElement;
+          const input = group && group.querySelector('input[type="text"]');
+          if (!input || input.dataset.dolphiCisSelectSource === '1') return;
+          const centres = await getCentresCache().catch(() => []);
+          if (!Array.isArray(centres) || !centres.length) return;
+
+          const select = document.createElement('select');
+          select.className = 'dolphi-stock-cis-select';
+          select.required = input.required;
+          select.innerHTML = '<option value="">Selectionner un CIS</option>' + centres
+            .map(cis => `<option value="${escapeHtml(cis)}">${escapeHtml(cis)}</option>`)
+            .join('');
+          select.value = input.value || '';
+          select.addEventListener('change', () => setReactInputValue(input, select.value));
+
+          input.dataset.dolphiCisSelectSource = '1';
+          input.style.display = 'none';
+          group.appendChild(select);
+        }
+
+        function solidifyTransparentMenus() {
+          const candidates = Array.from(document.querySelectorAll('#root .glass, #root [style*="rgba"], #root [style*="backdrop"]'));
+          candidates.forEach(element => {
+            if (!element.offsetParent) return;
+            const text = normalizeLoose(element.textContent);
+            const isCartoTools = text.includes('+ site') && text.includes('+ liaison') && text.includes('point haut') && text.includes('perroquet');
+            const isCartoCreate = text.includes('nouveau point haut') || text.includes('nouveau perroquet') || text.includes('nouveau point haut / perroquet') || text.includes('creer le site');
+            const isDeviceCreate = text.includes('ajouter un appareil') && (text.includes("creer l'appareil") || text.includes('numero de serie') || text.includes('centre cible'));
+            const isStockCreate = text.includes('ajouter un equipement au stock');
+            if (isCartoTools || isCartoCreate || isDeviceCreate || isStockCreate) {
+              element.classList.add('dolphi-solid-menu');
+            }
+          });
+        }
+
         function installEnhancements() {
           const app = document.querySelector('#root > div');
           if (!app) return;
@@ -4982,6 +5748,20 @@
           const main = app.querySelector(':scope > main');
           if (!sidebar || !nav || !footer || !main) return;
           reactMain = main;
+
+          if (!app.dataset.dolphiCartoTabPrimeBound) {
+            app.dataset.dolphiCartoTabPrimeBound = '1';
+            app.addEventListener('click', event => {
+              const button = event.target && event.target.closest ? event.target.closest('button') : null;
+              if (!button || !isCartoEnhancedTabLabel(button.textContent)) return;
+              const drawer = findCartoDrawer();
+              if (drawer && drawer.contains(button)) {
+                primeCartoEnhancedContent(drawer);
+                setTimeout(() => enhanceCartoPanels().catch(error => console.warn('Cartographie enhancements failed', error)), 0);
+                setTimeout(() => enhanceCartoPanels().catch(error => console.warn('Cartographie enhancements failed', error)), 40);
+              }
+            }, true);
+          }
 
           if (!extensionMain || !extensionMain.isConnected) {
             extensionMain = document.createElement('main');
@@ -5109,6 +5889,9 @@
           updateAdvancedSearchFields();
           hideSiteInfoTab();
           removeLegacyNotificationConfig();
+          solidifyTransparentMenus();
+          enhanceCartoPanels().catch(error => console.warn('Cartographie enhancements failed', error));
+          enhanceStockCisSelect().catch(error => console.warn('Stock CIS selector enhancement failed', error));
 
           if (!app.dataset.dolphiDefaultDashboard) {
             app.dataset.dolphiDefaultDashboard = '1';

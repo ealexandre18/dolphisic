@@ -323,7 +323,26 @@ def init_db():
     conn.commit()
     conn.close()
 
+def init_carto_db():
+    conn = sqlite3.connect(DB_CARTO)
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS carto_tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            site_id INTEGER NOT NULL,
+            nom TEXT NOT NULL,
+            description TEXT DEFAULT '',
+            fait INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL,
+            completed_at TEXT,
+            FOREIGN KEY(site_id) REFERENCES sites(id) ON DELETE CASCADE
+        )
+    """)
+    conn.commit()
+    conn.close()
+
 init_db()
+init_carto_db()
 
 def get_db_connection(db_path):
     conn = sqlite3.connect(db_path)
@@ -2049,6 +2068,102 @@ def site_info(site_id):
             log_logic(f"Failed to update Site ID={site_id} info: {str(e)}")
             return jsonify({'error': str(e)}), 500
 
+@app.route('/api/carto/sites/<int:site_id>/tasks', methods=['GET'])
+def get_site_tasks(site_id):
+    try:
+        rows = query_db(DB_CARTO, """
+            SELECT id, site_id, nom, description, fait, created_at, completed_at
+            FROM carto_tasks
+            WHERE site_id = ?
+            ORDER BY fait ASC, COALESCE(completed_at, created_at) DESC, id DESC
+        """, (site_id,))
+        return jsonify([dict(r) for r in rows])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/carto/sites/<int:site_id>/tasks', methods=['POST'])
+def add_site_task(site_id):
+    data = request.json or {}
+    nom = (data.get('nom') or '').strip()
+    description = (data.get('description') or '').strip()
+    if not nom:
+        return jsonify({'error': 'Nom de tâche requis'}), 400
+
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    try:
+        new_id = query_db(DB_CARTO, """
+            INSERT INTO carto_tasks (site_id, nom, description, fait, created_at)
+            VALUES (?, ?, ?, 0, ?)
+        """, (site_id, nom, description, now), commit=True)
+        log_logic(f"Cartography task added | Site ID={site_id} | Task ID={new_id} | Name='{nom}'")
+        return jsonify({
+            'success': True,
+            'id': new_id,
+            'site_id': site_id,
+            'nom': nom,
+            'description': description,
+            'fait': 0,
+            'created_at': now,
+            'completed_at': None,
+            'message': 'Tâche ajoutée'
+        })
+    except Exception as e:
+        log_logic(f"Failed to add cartography task for Site ID={site_id}: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/carto/tasks/<int:task_id>', methods=['PATCH'])
+def update_site_task(task_id):
+    data = request.json or {}
+    fields = []
+    args = []
+
+    if 'nom' in data:
+        nom = (data.get('nom') or '').strip()
+        if not nom:
+            return jsonify({'error': 'Nom de tâche requis'}), 400
+        fields.append('nom = ?')
+        args.append(nom)
+
+    if 'description' in data:
+        fields.append('description = ?')
+        args.append((data.get('description') or '').strip())
+
+    if 'fait' in data:
+        fait = 1 if data.get('fait') else 0
+        fields.append('fait = ?')
+        args.append(fait)
+        fields.append('completed_at = ?')
+        args.append(datetime.now().strftime("%Y-%m-%d %H:%M:%S") if fait else None)
+
+    if not fields:
+        return jsonify({'error': 'Aucune modification fournie'}), 400
+
+    args.append(task_id)
+    try:
+        query_db(DB_CARTO, f"UPDATE carto_tasks SET {', '.join(fields)} WHERE id = ?", tuple(args), commit=True)
+        row = query_db(DB_CARTO, """
+            SELECT id, site_id, nom, description, fait, created_at, completed_at
+            FROM carto_tasks
+            WHERE id = ?
+        """, (task_id,), one=True)
+        if not row:
+            return jsonify({'error': 'Tâche introuvable'}), 404
+        log_logic(f"Cartography task updated | Task ID={task_id} | Done={row['fait']}")
+        return jsonify({'success': True, 'task': dict(row), 'message': 'Tâche mise à jour'})
+    except Exception as e:
+        log_logic(f"Failed to update cartography task ID={task_id}: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/carto/tasks/<int:task_id>/delete', methods=['POST'])
+def delete_site_task(task_id):
+    try:
+        query_db(DB_CARTO, "DELETE FROM carto_tasks WHERE id = ?", (task_id,), commit=True)
+        log_logic(f"Cartography task deleted | Task ID={task_id}")
+        return jsonify({'success': True, 'message': 'Tâche supprimée'})
+    except Exception as e:
+        log_logic(f"Failed to delete cartography task ID={task_id}: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 # --- PYLONES CRUD ---
 @app.route('/api/carto/sites/<int:site_id>/pylones', methods=['GET'])
 def get_pylones(site_id):
@@ -2095,17 +2210,46 @@ def get_main_courante(site_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+def normalize_carto_datetime(value):
+    date_str = (value or '').strip()
+    if not date_str:
+        return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    if len(date_str) == 10:
+        return f"{date_str} 00:00:00"
+    if 'T' in date_str:
+        date_str = date_str.replace('T', ' ')
+        if len(date_str) == 16:
+            return f"{date_str}:00"
+    return date_str
+
 @app.route('/api/carto/sites/<int:site_id>/main_courante', methods=['POST'])
 def add_main_courante(site_id):
     data = request.json or {}
-    evenement = data.get('evenement')
+    evenement = (data.get('evenement') or '').strip()
     if not evenement:
         return jsonify({'error': "Texte de l'événement requis"}), 400
     try:
-        date_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        date_str = normalize_carto_datetime(data.get('date_heure'))
         new_id = query_db(DB_CARTO, "INSERT INTO main_courante (site_id, date_heure, evenement) VALUES (?, ?, ?)",
                           (site_id, date_str, evenement), commit=True)
         return jsonify({'success': True, 'id': new_id, 'date_heure': date_str, 'message': 'Événement ajouté'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/carto/main_courante/<int:item_id>', methods=['PATCH'])
+def update_main_courante(item_id):
+    data = request.json or {}
+    evenement = (data.get('evenement') or '').strip()
+    if not evenement:
+        return jsonify({'error': "Texte de l'événement requis"}), 400
+    try:
+        date_str = normalize_carto_datetime(data.get('date_heure'))
+        query_db(DB_CARTO, "UPDATE main_courante SET date_heure = ?, evenement = ? WHERE id = ?",
+                 (date_str, evenement, item_id), commit=True)
+        row = query_db(DB_CARTO, "SELECT id, date_heure, evenement FROM main_courante WHERE id = ?", (item_id,), one=True)
+        if not row:
+            return jsonify({'error': 'Événement introuvable'}), 404
+        return jsonify({'success': True, 'item': dict(row), 'message': 'Événement modifié'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
