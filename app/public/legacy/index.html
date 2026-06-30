@@ -4264,10 +4264,10 @@
                   <div class="dolphi-notif-table-wrap">
                     <table class="dolphi-notif-table">
                       <thead>
-                        <tr><th>Email</th><th>Mode</th><th>Statut</th></tr>
+                        <tr><th>Email</th><th>Mode</th><th>Statut</th><th style="text-align: center;">Actions</th></tr>
                       </thead>
                       <tbody id="emails-list-tbody">
-                        <tr><td colspan="3" class="dolphi-notif-empty">Chargement des adresses...</td></tr>
+                        <tr><td colspan="4" class="dolphi-notif-empty">Chargement des adresses...</td></tr>
                       </tbody>
                     </table>
                   </div>
@@ -4555,9 +4555,36 @@
               tdMode.innerHTML = '<span class="dolphi-pill info">' + escapeHtml(modeLabel(item)) + '</span>';
               const tdStatus = document.createElement('td');
               tdStatus.innerHTML = '<span class="dolphi-pill ' + (item.enabled ? 'success' : 'danger') + '">' + escapeHtml(statusLabel(item)) + '</span>';
+              
+              const tdActions = document.createElement('td');
+              tdActions.className = 'dolphi-notif-row-actions';
+              const delBtn = document.createElement('button');
+              delBtn.type = 'button';
+              delBtn.className = 'dolphi-notif-icon-btn danger';
+              delBtn.title = "Supprimer ce destinataire";
+              delBtn.setAttribute('aria-label', "Supprimer le destinataire " + item.email);
+              delBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path></svg>';
+              delBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                if (!confirm("Supprimer définitivement le destinataire " + item.email + " ainsi que toutes ses associations ?")) return;
+                try {
+                  await fetchJson('/api/notifications/emails/' + item.id, { method: 'DELETE' });
+                  showFeedback('Destinataire supprimé avec succès.');
+                  if (selectedEmail && selectedEmail.id === item.id) {
+                    selectedEmail = null;
+                    disableConfigPanel();
+                  }
+                  await loadEmails();
+                } catch (err) {
+                  showFeedback(err.message, true);
+                }
+              });
+              tdActions.appendChild(delBtn);
+
               tr.appendChild(tdEmail);
               tr.appendChild(tdMode);
               tr.appendChild(tdStatus);
+              tr.appendChild(tdActions);
               emailsListTbody.appendChild(tr);
             });
           }
