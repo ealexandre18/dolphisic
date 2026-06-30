@@ -1035,8 +1035,8 @@
     "semantic_hash": ""
   },
   "app/backend/server.py": {
-    "mtime": 1782741196.499158,
-    "ast_hash": "6e557ac07a23f9e75365b1cc7084aee2",
+    "mtime": 1782800838.6682425,
+    "ast_hash": "84da3c99afea0118b5a156e406144f29",
     "semantic_hash": ""
   },
   "app/components.json": {
@@ -1125,8 +1125,8 @@
     "semantic_hash": ""
   },
   "app/public/legacy/index.html": {
-    "mtime": 1782738339.692401,
-    "ast_hash": "87155da4a373cf4dcb7f1770cb6d9d44",
+    "mtime": 1782808502.0059652,
+    "ast_hash": "e3e2ef9424c278fcb7cd5d9b1d34e927",
     "semantic_hash": ""
   },
   "app/public/assets/logo-BXvTnzfG.png": {

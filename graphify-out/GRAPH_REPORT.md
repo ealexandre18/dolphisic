@@ -1,16 +1,16 @@
-# Graph Report - PROJET SDIS  (2026-06-29)
+# Graph Report - PROJET SDIS  (2026-06-30)
 
 ## Corpus Check
-- 59 files · ~149,636 words
+- 59 files · ~152,664 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3426 nodes · 10910 edges · 96 communities (84 shown, 12 thin omitted)
+- 3433 nodes · 10927 edges · 97 communities (85 shown, 12 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `cc7e6a72`
+- Built from commit: `b8e9c51e`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -87,6 +87,7 @@
 - [[_COMMUNITY_Community 72|Community 72]]
 - [[_COMMUNITY_Community 76|Community 76]]
 - [[_COMMUNITY_Community 78|Community 78]]
+- [[_COMMUNITY_Community 94|Community 94]]
 - [[_COMMUNITY_Community 197|Community 197]]
 - [[_COMMUNITY_Community 246|Community 246]]
 
@@ -103,21 +104,21 @@
 10. `i()` - 65 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `sd()` --calls--> `$()`  [EXTRACTED]
-  app/public/assets/index-DyRupmtp.js → app/public/assets/index-DyRupmtp.js  _Bridges community 3 → community 28_
 - `at()` --calls--> `t()`  [EXTRACTED]
   app/public/assets/index-DyRupmtp.js → app/public/assets/index-DyRupmtp.js  _Bridges community 41 → community 0_
 - `cf()` --calls--> `t()`  [EXTRACTED]
   app/public/assets/index-DyRupmtp.js → app/public/assets/index-DyRupmtp.js  _Bridges community 41 → community 28_
-- `gs()` --calls--> `t()`  [EXTRACTED]
-  app/public/assets/index-DyRupmtp.js → app/public/assets/index-DyRupmtp.js  _Bridges community 41 → community 6_
 - `re()` --calls--> `t()`  [EXTRACTED]
   app/public/assets/index-DyRupmtp.js → app/public/assets/index-DyRupmtp.js  _Bridges community 41 → community 29_
+- `t()` --calls--> `Pt()`  [EXTRACTED]
+  app/public/assets/index-DyRupmtp.js → app/public/assets/index-DyRupmtp.js  _Bridges community 41 → community 3_
+- `cr()` --calls--> `n()`  [EXTRACTED]
+  app/public/assets/index-DyRupmtp.js → app/public/assets/index-DyRupmtp.js  _Bridges community 41 → community 26_
 
 ## Import Cycles
 - None detected.
 
-## Communities (96 total, 12 thin omitted)
+## Communities (97 total, 12 thin omitted)
 
 ### Community 0 - "V2 Server API Endpoints"
 Cohesion: 0.07
@@ -129,11 +130,11 @@ Nodes (14): carto_sdis04 SQLite Database, EQUIPEMENT_PARC Entity, sdis04 SQLite 
 
 ### Community 2 - "Server Site & Asset Operations"
 Cohesion: 0.02
-Nodes (115): $(), active(), addControllers(), addElements(), addPlugins(), addScales(), _animateOptions(), ar() (+107 more)
+Nodes (124): $(), acquireContext(), addControllers(), addPlugins(), addScales(), afterDraw(), afterTickToLabelConversion(), ar() (+116 more)
 
 ### Community 3 - "Database Models & Schemas"
 Cohesion: 0.02
-Nodes (133): $(), aa(), active(), addBox(), addControllers(), addElements(), addPlugins(), addScales() (+125 more)
+Nodes (123): $(), aa(), addBox(), addControllers(), addElements(), addPlugins(), addScales(), afterAutoSkip() (+115 more)
 
 ### Community 4 - "UI Design & Styles"
 Cohesion: 0.67
@@ -141,119 +142,119 @@ Nodes (3): Data-Dense Dashboard Style, Real-Time / Operations Landing Pattern, D
 
 ### Community 5 - "Device Cryptography & Key Management"
 Cohesion: 0.02
-Nodes (125): $(), aa(), active(), addBox(), addControllers(), addElements(), addPlugins(), addScales() (+117 more)
+Nodes (126): $(), active(), addControllers(), addElements(), addPlugins(), addScales(), afterAutoSkip(), afterDraw() (+118 more)
 
 ### Community 6 - "V2 Cryptography & Key Management"
-Cohesion: 0.04
-Nodes (92): acquireContext(), afterBuildTicks(), afterCalculateLabelRotation(), afterDataLimits(), afterDatasetsUpdate(), afterFit(), afterSetDimensions(), afterUpdate() (+84 more)
+Cohesion: 0.03
+Nodes (106): acquireContext(), afterBuildTicks(), afterCalculateLabelRotation(), afterDataLimits(), afterDatasetsUpdate(), afterFit(), afterSetDimensions(), afterUpdate() (+98 more)
 
 ### Community 7 - "Project Architecture & Structure"
-Cohesion: 0.07
-Nodes (51): afterDatasetsUpdate(), beforeLayout(), bl(), cl(), dl(), ea(), el(), first() (+43 more)
+Cohesion: 0.08
+Nodes (41): beforeLayout(), bl(), cl(), Ct(), dl(), ea(), el(), et() (+33 more)
 
 ### Community 8 - "Database Check Scripts"
-Cohesion: 0.06
-Nodes (57): applyStack(), _calculateBarIndexPixels(), _calculateBarValuePixels(), calculateCircumference(), calculateTotal(), _circumference(), _computeAngle(), countVisibleElements() (+49 more)
+Cohesion: 0.09
+Nodes (39): applyStack(), _calculateBarIndexPixels(), _calculateBarValuePixels(), calculateCircumference(), calculateTotal(), _circumference(), _computeAngle(), countVisibleElements() (+31 more)
 
 ### Community 9 - "Site Database Comparison"
-Cohesion: 0.06
-Nodes (77): ad(), ap(), as(), at(), Au(), bf(), bu(), Co() (+69 more)
+Cohesion: 0.07
+Nodes (67): ad(), ap(), at(), Au(), bf(), bs(), bu(), buildTicks() (+59 more)
 
 ### Community 10 - "Leaflet CSS Comparison"
 Cohesion: 0.02
-Nodes (131): $(), aa(), active(), addBox(), addControllers(), addElements(), addPlugins(), addScales() (+123 more)
+Nodes (122): $(), aa(), active(), addBox(), addControllers(), addElements(), addPlugins(), addScales() (+114 more)
 
 ### Community 11 - "Full Database Validation"
-Cohesion: 0.05
-Nodes (58): Al(), buildTicks(), ca(), calculateLabelRotation(), _calculatePadding(), _computeGridLineItems(), _computeLabelItems(), computeTickLimit() (+50 more)
+Cohesion: 0.06
+Nodes (56): Al(), buildTicks(), ca(), calculateLabelRotation(), _calculatePadding(), _computeGridLineItems(), _computeLabelItems(), computeTickLimit() (+48 more)
 
 ### Community 12 - "Directory Structure Comparison"
 Cohesion: 0.05
-Nodes (66): Al(), applyStack(), ca(), _calculateBarIndexPixels(), _calculateBarValuePixels(), calculateCircumference(), calculateTotal(), _circumference() (+58 more)
+Nodes (70): Al(), applyStack(), ca(), _calculateBarIndexPixels(), _calculateBarValuePixels(), calculateCircumference(), calculateTotal(), _circumference() (+62 more)
 
 ### Community 13 - "Site Exporter Scripts"
-Cohesion: 0.07
-Nodes (44): aa(), addBox(), adjustHitBoxes(), afterDraw(), beforeDatasetDraw(), beforeDatasetsDraw(), beforeDraw(), _computeTitleHeight() (+36 more)
+Cohesion: 0.15
+Nodes (14): aa(), beforeDatasetDraw(), beforeDatasetsDraw(), beforeDraw(), generateLabels(), _getSortedDatasetMetas(), getSortedVisibleDatasetMetas(), getVisibleDatasetCount() (+6 more)
 
 ### Community 14 - "Server UI Logging"
 Cohesion: 0.04
-Nodes (138): a(), ac(), ae(), ai(), Ao(), apply(), b(), ba() (+130 more)
+Nodes (135): a(), ac(), ae(), ai(), Ao(), apply(), b(), ba() (+127 more)
 
 ### Community 15 - "Server Authentication & Security"
 Cohesion: 0.04
-Nodes (120): a(), ac(), ae(), ai(), Ao(), b(), ba(), bc() (+112 more)
+Nodes (153): a(), ac(), add(), addEventListener(), ae(), ai(), alpha(), Ao() (+145 more)
 
 ### Community 16 - "Frontend Static File Serving"
 Cohesion: 0.04
-Nodes (94): acquireContext(), afterBuildTicks(), afterCalculateLabelRotation(), afterDataLimits(), afterFit(), afterSetDimensions(), afterTickToLabelConversion(), afterUpdate() (+86 more)
+Nodes (89): addElements(), afterBuildTicks(), afterCalculateLabelRotation(), afterDataLimits(), afterDatasetsUpdate(), afterFit(), afterSetDimensions(), afterUpdate() (+81 more)
 
 ### Community 17 - "V2 Server Authentication"
 Cohesion: 0.04
-Nodes (130): a(), ac(), ae(), ai(), Ao(), apply(), b(), ba() (+122 more)
+Nodes (135): a(), ac(), ae(), ai(), Ao(), apply(), b(), ba() (+127 more)
 
 ### Community 18 - "V2 Frontend File Serving"
 Cohesion: 0.04
 Nodes (92): acquireContext(), afterBuildTicks(), afterCalculateLabelRotation(), afterDataLimits(), afterDatasetsUpdate(), afterFit(), afterSetDimensions(), afterUpdate() (+84 more)
 
 ### Community 19 - "Server Compare Script"
-Cohesion: 0.04
-Nodes (94): acquireContext(), afterBuildTicks(), afterCalculateLabelRotation(), afterDataLimits(), afterDatasetsUpdate(), afterFit(), afterSetDimensions(), afterUpdate() (+86 more)
+Cohesion: 0.03
+Nodes (107): aa(), acquireContext(), addBox(), afterBuildTicks(), afterCalculateLabelRotation(), afterDataLimits(), afterDatasetsUpdate(), afterFit() (+99 more)
 
 ### Community 20 - "SVG Search Script"
 Cohesion: 0.07
 Nodes (69): ad(), ap(), as(), at(), Au(), bu(), Co(), Cu() (+61 more)
 
 ### Community 21 - "JS Code Search Script"
-Cohesion: 0.07
-Nodes (69): ad(), ap(), as(), at(), Au(), bu(), Co(), Cu() (+61 more)
+Cohesion: 0.06
+Nodes (74): ad(), ap(), as(), at(), Au(), bu(), buildTicks(), Co() (+66 more)
 
 ### Community 22 - "JS Category Search Script"
-Cohesion: 0.05
-Nodes (61): Al(), buildTicks(), ca(), calculateLabelRotation(), _calculatePadding(), _computeGridLineItems(), _computeLabelItems(), computeTickLimit() (+53 more)
+Cohesion: 0.07
+Nodes (51): adjustHitBoxes(), calculateLabelRotation(), _calculatePadding(), _computeGridLineItems(), _computeLabelArea(), _computeLabelItems(), computeTickLimit(), _computeTitleHeight() (+43 more)
 
 ### Community 23 - "JS Selector Search Script"
 Cohesion: 0.08
 Nodes (24): dependencies, clsx, framer-motion, lucide-react, next, react, react-dom, tailwind-merge (+16 more)
 
 ### Community 26 - "Community 26"
-Cohesion: 0.10
-Nodes (33): adjustHitBoxes(), afterDraw(), _computeTitleHeight(), cr(), cs(), draw(), drawBody(), _drawColorBox() (+25 more)
+Cohesion: 0.07
+Nodes (44): adjustHitBoxes(), afterDraw(), _computeTitleHeight(), cr(), cs(), draw(), _drawArgs(), drawBody() (+36 more)
 
 ### Community 27 - "Community 27"
-Cohesion: 0.15
-Nodes (19): cr(), cs(), easeInOutElastic(), Ed(), en(), Gn(), Hn(), k() (+11 more)
+Cohesion: 0.07
+Nodes (56): adjustHitBoxes(), calculateLabelRotation(), _calculatePadding(), _computeGridLineItems(), _computeLabelArea(), _computeLabelItems(), computeTickLimit(), _computeTitleHeight() (+48 more)
 
 ### Community 28 - "Community 28"
-Cohesion: 0.07
-Nodes (60): add(), addEventListener(), af(), afterAutoSkip(), bd(), bt(), buildLookupTable(), _cachedScopes() (+52 more)
+Cohesion: 0.09
+Nodes (47): add(), addEventListener(), af(), bd(), bt(), _cachedScopes(), cf(), de() (+39 more)
 
 ### Community 29 - "Community 29"
 Cohesion: 0.07
-Nodes (48): alpha(), beforeLayout(), bl(), cl(), Ct(), D(), dl(), E() (+40 more)
+Nodes (51): alpha(), beforeLayout(), bl(), cl(), Ct(), D(), dl(), E() (+43 more)
 
 ### Community 30 - "Community 30"
-Cohesion: 0.06
-Nodes (57): applyStack(), _calculateBarIndexPixels(), _calculateBarValuePixels(), calculateCircumference(), calculateTotal(), _circumference(), _computeAngle(), countVisibleElements() (+49 more)
+Cohesion: 0.05
+Nodes (69): Al(), applyStack(), ca(), _calculateBarIndexPixels(), _calculateBarValuePixels(), calculateCircumference(), calculateTotal(), _circumference() (+61 more)
 
 ### Community 31 - "Community 31"
-Cohesion: 0.04
-Nodes (88): Al(), applyStack(), buildTicks(), _calculateBarIndexPixels(), _calculateBarValuePixels(), calculateCircumference(), calculateLabelRotation(), _calculatePadding() (+80 more)
+Cohesion: 0.06
+Nodes (48): buildTicks(), calculateLabelRotation(), _calculatePadding(), _computeGridLineItems(), _computeLabelItems(), computeTickLimit(), determineDataLimits(), diff() (+40 more)
 
 ### Community 32 - "Community 32"
-Cohesion: 0.07
-Nodes (60): add(), addEventListener(), af(), afterAutoSkip(), bd(), bt(), buildLookupTable(), _cachedScopes() (+52 more)
+Cohesion: 0.09
+Nodes (51): add(), addEventListener(), af(), bd(), bt(), _cachedScopes(), cf(), de() (+43 more)
 
 ### Community 33 - "Community 33"
-Cohesion: 0.09
-Nodes (50): add(), addEventListener(), af(), bd(), bt(), _cachedScopes(), cf(), de() (+42 more)
+Cohesion: 0.07
+Nodes (60): add(), addEventListener(), af(), afterAutoSkip(), bd(), bt(), buildLookupTable(), _cachedScopes() (+52 more)
 
 ### Community 34 - "Community 34"
 Cohesion: 0.20
 Nodes (14): An(), average(), bn(), getCenterPoint(), getProps(), hasValue(), inRange(), inXRange() (+6 more)
 
 ### Community 35 - "Community 35"
-Cohesion: 0.11
-Nodes (32): beforeLayout(), bl(), cl(), dl(), el(), first(), fl(), getBasePosition() (+24 more)
+Cohesion: 0.10
+Nodes (37): Al(), beforeLayout(), bl(), cl(), dl(), el(), first(), fl() (+29 more)
 
 ### Community 36 - "Community 36"
 Cohesion: 0.10
@@ -264,32 +265,32 @@ Cohesion: 0.11
 Nodes (45): get_smtp_config(), , (rowid,), one=True)         if not device:             return jsonify({'erro, update_device(), add_device(), bulk_delete_devices(), bulk_update_device_cryptage(), calculate_next_key_date(), check_and_send_notifications() (+37 more)
 
 ### Community 38 - "Community 38"
-Cohesion: 0.09
-Nodes (50): add(), addEventListener(), af(), bd(), bt(), _cachedScopes(), cc(), cf() (+42 more)
+Cohesion: 0.11
+Nodes (37): addBox(), af(), bt(), _cachedScopes(), df(), ef(), ep(), ff() (+29 more)
 
 ### Community 39 - "Community 39"
 Cohesion: 0.12
 Nodes (16): aliases, components, hooks, lib, ui, utils, rsc, $schema (+8 more)
 
 ### Community 40 - "Community 40"
-Cohesion: 0.07
-Nodes (51): alpha(), beforeLayout(), bl(), cl(), Ct(), D(), dl(), E() (+43 more)
+Cohesion: 0.10
+Nodes (35): beforeLayout(), bl(), cl(), dl(), ea(), el(), first(), fl() (+27 more)
 
 ### Community 41 - "Community 41"
 Cohesion: 0.04
-Nodes (130): a(), ac(), ae(), ai(), Ao(), apply(), b(), ba() (+122 more)
+Nodes (128): a(), ac(), ae(), ai(), Ao(), apply(), b(), ba() (+120 more)
 
 ### Community 42 - "Community 42"
-Cohesion: 0.06
-Nodes (51): adjustHitBoxes(), afterDraw(), _computeTitleHeight(), cr(), cs(), draw(), drawBody(), _drawColorBox() (+43 more)
+Cohesion: 0.05
+Nodes (65): adjustHitBoxes(), afterDraw(), alpha(), _computeLabelArea(), _computeTitleHeight(), cr(), cs(), D() (+57 more)
 
 ### Community 43 - "Community 43"
-Cohesion: 0.09
-Nodes (29): alpha(), _computeLabelArea(), D(), drawLabels(), E(), ee(), ep(), er() (+21 more)
+Cohesion: 0.07
+Nodes (52): applyStack(), _calculateBarIndexPixels(), _calculateBarValuePixels(), calculateCircumference(), calculateTotal(), _circumference(), _computeAngle(), countVisibleElements() (+44 more)
 
 ### Community 44 - "Community 44"
-Cohesion: 0.11
-Nodes (26): alpha(), Ct(), D(), E(), ee(), ep(), et(), Ft() (+18 more)
+Cohesion: 0.15
+Nodes (17): active(), _animateOptions(), cancel(), _createAnimations(), _createDescriptors(), da(), _descriptors(), ks() (+9 more)
 
 ### Community 45 - "Community 45"
 Cohesion: 0.08
@@ -300,8 +301,8 @@ Cohesion: 0.20
 Nodes (14): An(), average(), bn(), getCenterPoint(), getProps(), hasValue(), inRange(), inXRange() (+6 more)
 
 ### Community 47 - "Community 47"
-Cohesion: 0.10
-Nodes (33): adjustHitBoxes(), afterDraw(), _computeTitleHeight(), cr(), cs(), draw(), drawBody(), _drawColorBox() (+25 more)
+Cohesion: 0.09
+Nodes (32): cs(), easeInOutElastic(), Ed(), en(), er(), Fn(), fr(), Ft() (+24 more)
 
 ### Community 48 - "Community 48"
 Cohesion: 0.10
@@ -312,8 +313,8 @@ Cohesion: 0.12
 Nodes (16): aliases, components, hooks, lib, ui, utils, rsc, $schema (+8 more)
 
 ### Community 50 - "Community 50"
-Cohesion: 0.12
-Nodes (18): afterAutoSkip(), buildLookupTable(), cd(), getAllParsedValues(), getDataTimestamps(), getDecimalForPixel(), getDecimalForValue(), getLabelTimestamps() (+10 more)
+Cohesion: 0.17
+Nodes (12): afterAutoSkip(), buildLookupTable(), cd(), getDecimalForPixel(), getDecimalForValue(), getValueForPixel(), hp(), initOffsets() (+4 more)
 
 ### Community 52 - "Community 52"
 Cohesion: 0.20
@@ -359,9 +360,13 @@ Nodes (4): DolphiSIC Redesign, Installation manuelle, Lancement complet, Structu
 Cohesion: 0.40
 Nodes (3): DOLPHISIC_PORT, NODE_OPTIONS, start.sh script
 
+### Community 94 - "Community 94"
+Cohesion: 0.15
+Nodes (17): active(), _animateOptions(), cancel(), _createAnimations(), _createDescriptors(), da(), _descriptors(), ks() (+9 more)
+
 ### Community 197 - "Community 197"
-Cohesion: 0.06
-Nodes (84): add_device(), bulk_delete_devices(), bulk_update_device_cryptage(), calculate_next_key_date(), check_and_send_notifications(), collect_urgent_operations(), Colors, delete_device() (+76 more)
+Cohesion: 0.05
+Nodes (90): add_device(), bulk_delete_devices(), bulk_update_device_cryptage(), calculate_next_key_date(), check_and_send_notifications(), collect_urgent_operations(), Colors, delete_device() (+82 more)
 
 ### Community 246 - "Community 246"
 Cohesion: 0.06
@@ -375,11 +380,11 @@ Nodes (33): Project Structure Flattening, 1. Retrait et Centrage des Cartes KPI 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `$()` connect `Database Models & Schemas` to `V2 Server API Endpoints`, `V2 Cryptography & Key Management`, `Database Check Scripts`, `Community 41`, `Full Database Validation`, `Community 46`, `Community 26`, `Community 28`, `Community 29`?**
-  _High betweenness centrality (0.055) - this node is a cross-community bridge._
+- **Why does `$()` connect `Database Models & Schemas` to `V2 Server API Endpoints`, `V2 Cryptography & Key Management`, `Database Check Scripts`, `Community 41`, `Full Database Validation`, `Community 44`, `Community 46`, `Community 26`, `Community 28`, `Community 29`?**
+  _High betweenness centrality (0.054) - this node is a cross-community bridge._
 - **Why does `$()` connect `Device Cryptography & Key Management` to `Community 32`, `Community 40`, `Community 47`, `V2 Server Authentication`, `Server Compare Script`, `JS Code Search Script`, `JS Category Search Script`, `Community 53`, `Community 30`?**
   _High betweenness centrality (0.047) - this node is a cross-community bridge._
-- **Why does `$()` connect `Server Site & Asset Operations` to `Community 34`, `Community 38`, `Project Architecture & Structure`, `Site Database Comparison`, `Directory Structure Comparison`, `Site Exporter Scripts`, `Community 44`, `Server Authentication & Security`, `Frontend Static File Serving`, `Community 50`, `Community 27`?**
+- **Why does `$()` connect `Server Site & Asset Operations` to `Community 34`, `Community 38`, `Project Architecture & Structure`, `Site Database Comparison`, `Directory Structure Comparison`, `Site Exporter Scripts`, `Server Authentication & Security`, `Frontend Static File Serving`, `Community 50`, `Community 27`, `Community 94`?**
   _High betweenness centrality (0.046) - this node is a cross-community bridge._
 - **What connects `metadata`, `Window`, `menus` to the rest of the system?**
   _197 weakly-connected nodes found - possible documentation gaps or missing edges._
@@ -388,4 +393,4 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `Core Server API Endpoints` be split into smaller, more focused modules?**
   _Cohesion score 0.13333333333333333 - nodes in this community are weakly interconnected._
 - **Should `Server Site & Asset Operations` be split into smaller, more focused modules?**
-  _Cohesion score 0.019352593108249216 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.019270604481827883 - nodes in this community are weakly interconnected._

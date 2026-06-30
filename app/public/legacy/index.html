@@ -1571,6 +1571,19 @@
         box-shadow: 0 18px 44px rgba(0, 0, 0, 0.38) !important;
       }
 
+      .dolphi-solid-menu::before,
+      .dolphi-solid-menu::after {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+
+      .dolphi-transparent-overlay {
+        background: rgba(2, 6, 23, 0.42) !important;
+        background-color: rgba(2, 6, 23, 0.42) !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+
       .dolphi-solid-menu button:not(.btn-primary):not([style*="var(--primary)"]) {
         background-color: rgba(15, 23, 42, 0.96) !important;
       }
@@ -1579,6 +1592,100 @@
       .dolphi-solid-menu select,
       .dolphi-solid-menu textarea {
         background-color: #111a2e !important;
+      }
+
+      .dolphi-device-add-modal {
+        width: min(520px, calc(100vw - 48px)) !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        padding: 18px 34px 20px !important;
+        box-sizing: border-box !important;
+      }
+
+      .dolphi-device-add-modal * {
+        box-sizing: border-box !important;
+      }
+
+      .dolphi-device-add-modal form {
+        gap: 8px !important;
+      }
+
+      .dolphi-device-add-modal form > div {
+        gap: 8px !important;
+      }
+
+      .dolphi-device-add-modal input,
+      .dolphi-device-add-modal select,
+      .dolphi-device-add-modal textarea {
+        height: 40px !important;
+        min-height: 40px !important;
+      }
+
+      .dolphi-device-add-modal textarea {
+        height: 52px !important;
+        min-height: 52px !important;
+      }
+
+      .dolphi-device-add-modal label {
+        margin-bottom: 4px !important;
+        line-height: 1.25 !important;
+      }
+
+      .dolphi-device-add-modal form > div:last-child {
+        justify-content: center !important;
+        gap: 18px !important;
+        margin-top: 14px !important;
+      }
+
+      .dolphi-device-add-modal form > div:last-child button {
+        min-width: 160px !important;
+      }
+
+      .dolphi-stock-add-modal {
+        width: min(640px, calc(100vw - 42px)) !important;
+        max-width: min(640px, calc(100vw - 42px)) !important;
+        box-sizing: border-box !important;
+        overflow: visible !important;
+        padding: 28px 34px 34px !important;
+      }
+
+      .dolphi-stock-add-modal > div:first-child,
+      .dolphi-stock-add-modal > div:first-child > div {
+        display: flex !important;
+        align-items: center !important;
+      }
+
+      .dolphi-stock-add-modal > div:first-child {
+        margin-bottom: 30px !important;
+      }
+
+      .dolphi-stock-add-modal > div:first-child > div {
+        gap: 14px !important;
+      }
+
+      .dolphi-stock-add-modal > div:first-child svg {
+        display: block !important;
+        flex: 0 0 auto !important;
+        margin: 0 !important;
+        transform: translateY(0) !important;
+        align-self: center !important;
+      }
+
+      .dolphi-stock-add-modal h3 {
+        display: block !important;
+        margin: 0 !important;
+        line-height: 1.2 !important;
+      }
+
+      .dolphi-stock-add-modal form > div:last-child {
+        justify-content: center !important;
+        gap: 32px !important;
+        width: 100% !important;
+      }
+
+      .dolphi-stock-add-modal form > div:last-child button {
+        min-width: 160px !important;
       }
 
       .dolphi-notif-config-panel.notifications-locked .dolphi-mode-card,
@@ -2339,47 +2446,8 @@
         line-height: 1.35;
       }
 
-      .dolphi-stock-add-modal {
-        padding: 30px !important;
-      }
-
-      .dolphi-stock-add-modal h3 {
-        display: flex !important;
-        align-items: center !important;
-        gap: 12px !important;
-        margin-bottom: 30px !important;
-        line-height: 1.25 !important;
-      }
-
-      .dolphi-stock-add-modal h3 svg {
-        display: block !important;
-        flex: 0 0 auto !important;
-        margin: 0 !important;
-        transform: translateY(1px);
-      }
-
       .dolphi-stock-add-modal form {
-        gap: 28px !important;
-      }
-
-      .dolphi-stock-add-modal form > div {
-        gap: 24px !important;
-      }
-
-      .dolphi-stock-add-modal label {
-        display: block !important;
-        margin-bottom: 12px !important;
-      }
-
-      .dolphi-stock-add-modal input,
-      .dolphi-stock-add-modal select,
-      .dolphi-stock-add-modal textarea,
-      .dolphi-stock-add-modal .dolphi-stock-cis-select {
-        min-height: 50px !important;
-      }
-
-      .dolphi-stock-add-modal textarea {
-        min-height: 118px !important;
+        gap: 22px !important;
       }
     </style>
     <script>
@@ -5725,15 +5793,89 @@
         }
 
         function solidifyTransparentMenus() {
-          const candidates = Array.from(document.querySelectorAll('#root .glass, #root [style*="rgba"], #root [style*="backdrop"]'));
-          candidates.forEach(element => {
-            if (!element.offsetParent) return;
+          function isLargeOverlay(element) {
+            const rect = element.getBoundingClientRect();
+            const style = window.getComputedStyle(element);
+            return style.position === 'fixed' &&
+              rect.width >= window.innerWidth * 0.82 &&
+              rect.height >= window.innerHeight * 0.82;
+          }
+
+          function resetMenuClasses() {
+            document
+              .querySelectorAll('.dolphi-solid-menu, .dolphi-device-add-modal, .dolphi-stock-add-modal, .dolphi-carto-link-modal, .dolphi-transparent-overlay')
+              .forEach(element => element.classList.remove(
+                'dolphi-solid-menu',
+                'dolphi-device-add-modal',
+                'dolphi-stock-add-modal',
+                'dolphi-carto-link-modal',
+                'dolphi-transparent-overlay'
+              ));
+          }
+
+          function markOverlayFor(panel) {
+            let node = panel && panel.parentElement;
+            while (node && node !== document.body) {
+              if (isLargeOverlay(node)) {
+                node.classList.add('dolphi-transparent-overlay');
+                return;
+              }
+              node = node.parentElement;
+            }
+          }
+
+          function closestMenuPanel(title) {
+            let node = title;
+            while (node && node !== document.body) {
+              const rect = node.getBoundingClientRect();
+              const style = window.getComputedStyle(node);
+              const hasPanelShape = rect.width >= 260 &&
+                rect.height >= 120 &&
+                rect.width <= window.innerWidth * 0.92 &&
+                rect.height <= window.innerHeight + 2 &&
+                !isLargeOverlay(node) &&
+                (node.classList.contains('glass') || style.borderRadius !== '0px' || parseFloat(style.paddingTop) > 8);
+
+              if (hasPanelShape) return node;
+              node = node.parentElement;
+            }
+            return null;
+          }
+
+          function applyPanel(title, ...extraClasses) {
+            const panel = closestMenuPanel(title);
+            if (!panel) return;
+            panel.classList.add('dolphi-solid-menu', ...extraClasses);
+            markOverlayFor(panel);
+          }
+
+          resetMenuClasses();
+
+          Array.from(document.querySelectorAll('h2, h3')).forEach(title => {
+            if (!title.offsetParent) return;
+            const text = normalizeLoose(title.textContent);
+
+            if (text.includes('ajouter un appareil')) {
+              applyPanel(title, 'dolphi-device-add-modal');
+            } else if (text.includes('ajouter un equipement au stock')) {
+              applyPanel(title, 'dolphi-stock-add-modal');
+            } else if (text.includes('tracer une liaison radio')) {
+              applyPanel(title, 'dolphi-carto-link-modal');
+            } else if (text.includes('nouveau point haut') || text.includes('nouveau perroquet')) {
+              applyPanel(title);
+            }
+          });
+
+          Array.from(document.querySelectorAll('#root .glass')).forEach(element => {
+            if (!element.offsetParent || isLargeOverlay(element)) return;
+            const rect = element.getBoundingClientRect();
             const text = normalizeLoose(element.textContent);
-            const isCartoTools = text.includes('+ site') && text.includes('+ liaison') && text.includes('point haut') && text.includes('perroquet');
-            const isCartoCreate = text.includes('nouveau point haut') || text.includes('nouveau perroquet') || text.includes('nouveau point haut / perroquet') || text.includes('creer le site');
-            const isDeviceCreate = text.includes('ajouter un appareil') && (text.includes("creer l'appareil") || text.includes('numero de serie') || text.includes('centre cible'));
-            const isStockCreate = text.includes('ajouter un equipement au stock');
-            if (isCartoTools || isCartoCreate || isDeviceCreate || isStockCreate) {
+            const isCartoTools = text.includes('+ site') &&
+              text.includes('+ liaison') &&
+              text.includes('point haut') &&
+              text.includes('perroquet');
+
+            if (isCartoTools && rect.height < 96) {
               element.classList.add('dolphi-solid-menu');
             }
           });
