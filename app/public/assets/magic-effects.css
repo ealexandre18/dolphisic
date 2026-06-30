@@ -22,6 +22,7 @@
   pointer-events: none;
   z-index: 1;
   border-radius: inherit;
+  will-change: opacity;
 }
 
 .magic-card-wrapper:hover::before {
@@ -54,6 +55,7 @@
     linear-gradient(#fff 0 0);
   mask-composite: exclude;
   padding: 1px;
+  will-change: opacity, background-position;
 }
 
 .magic-card-wrapper:hover::after {
@@ -78,6 +80,7 @@
   animation: pulsate 2s ease-out infinite !important;
   position: relative;
   overflow: hidden;
+  will-change: box-shadow;
 }
 
 .pulsating-btn::after {
@@ -146,6 +149,7 @@
   z-index: 0;
   filter: blur(80px);
   animation: float-glow 6s ease-in-out infinite;
+  will-change: transform, opacity;
 }
 
 .magic-bg-glow-1 {
