@@ -123,6 +123,32 @@ app = Flask(
 # Enable CORS for frontend development server
 CORS(app)
 
+import gzip
+import io
+
+@app.after_request
+def compress_response(response):
+    accept_encoding = request.headers.get('Accept-Encoding', '')
+    if 'gzip' not in accept_encoding.lower():
+        return response
+    
+    content_type = response.content_type or ''
+    if not any(t in content_type for t in ['json', 'text', 'javascript', 'html', 'css', 'xml']):
+        return response
+        
+    if response.headers.get('Content-Encoding') or len(response.data) < 500:
+        return response
+        
+    gzip_buffer = io.BytesIO()
+    with gzip.GzipFile(mode='wb', fileobj=gzip_buffer) as gzip_file:
+        gzip_file.write(response.data)
+        
+    response.data = gzip_buffer.getvalue()
+    response.headers['Content-Encoding'] = 'gzip'
+    response.headers['Content-Length'] = len(response.data)
+    response.headers['Vary'] = 'Accept-Encoding'
+    return response
+
 # Settings file for notifications
 BASE_DIR = SERVER_DIR
 SETTINGS_FILE = os.path.join(BASE_DIR, "notification_settings.json")
@@ -320,6 +346,17 @@ def init_db():
                        'Appareil de test dynamique pour notifications', ?, ?, ?, ?, ?)
             """, (model, serial, last_key_date, next_key_date, last_key_date, notif_active, test_email))
 
+    # Optimize data: trim whitespace from key query columns
+    cur.execute("UPDATE parc SET cis = TRIM(cis), modele = TRIM(modele), num_serie = TRIM(num_serie)")
+    cur.execute("UPDATE materiel SET modele = TRIM(modele), type = TRIM(type)")
+    
+    # Create indexes for optimized fast lookups
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_parc_cis ON parc(cis)")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_parc_modele ON parc(modele)")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_parc_num_serie ON parc(num_serie)")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_parc_date_cle ON parc(date_cle_a_faire)")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_materiel_modele ON materiel(modele)")
+
     conn.commit()
     conn.close()
 
@@ -449,16 +486,24 @@ def record_cryptage_activity(device_count):
     return activity
 
 
+_date_cache = {}
 def parse_date_value(value):
     if not value:
         return None
-    raw_value = str(value).strip().split(' ')[0]
+    val_str = str(value)
+    if val_str in _date_cache:
+        return _date_cache[val_str]
+        
+    raw_value = val_str.strip().split(' ')[0]
+    result = None
     for date_format in ('%Y-%m-%d', '%m/%d/%y', '%m/%d/%Y', '%d/%m/%Y', '%d/%m/%y'):
         try:
-            return datetime.strptime(raw_value, date_format).date()
+            result = datetime.strptime(raw_value, date_format).date()
+            break
         except ValueError:
             continue
-    return None
+    _date_cache[val_str] = result
+    return result
 
 
 def collect_urgent_operations():
@@ -467,11 +512,11 @@ def collect_urgent_operations():
         SELECT p.rowid AS id, p.num_serie, p.modele, p.cis, p.affectation,
                p.date_maj_cle, p.date_cle_a_faire, m.type
         FROM parc p
-        LEFT JOIN materiel m ON TRIM(p.modele) = TRIM(m.modele)
-        WHERE UPPER(TRIM(COALESCE(p.cis, ''))) NOT IN ('TEST', 'PERDU', 'REFORME', 'RÉFORME')
-          AND UPPER(TRIM(COALESCE(m.type, ''))) NOT IN ('BIP', 'BIPS')
+        LEFT JOIN materiel m ON p.modele = m.modele
+        WHERE UPPER(COALESCE(p.cis, '')) NOT IN ('TEST', 'PERDU', 'REFORME', 'RÉFORME')
+          AND UPPER(COALESCE(m.type, '')) NOT IN ('BIP', 'BIPS')
           AND p.date_cle_a_faire IS NOT NULL
-          AND TRIM(p.date_cle_a_faire) != ''
+          AND p.date_cle_a_faire != ''
           AND NOT EXISTS (
               SELECT 1
               FROM dashboard_hidden_devices hidden
@@ -511,7 +556,7 @@ def collect_urgent_operations():
         FROM prets p
         JOIN stock s ON s.id = p.stock_id
         WHERE p.date_rendu IS NULL
-          AND UPPER(TRIM(COALESCE(s.cis, ''))) != 'TEST'
+          AND UPPER(COALESCE(s.cis, '')) != 'TEST'
     """)
     overdue_loans = []
     for row in loan_rows:
@@ -734,8 +779,8 @@ def get_centres():
 
 @app.route('/api/devices', methods=['GET'])
 def get_devices():
-    cis = request.args.get('cis')
-    device_type = request.args.get('type')
+    cis = (request.args.get('cis') or '').strip()
+    device_type = (request.args.get('type') or '').strip()
     if not cis or not device_type:
         return jsonify({'error': 'Paramètres cis et type requis'}), 400
 
@@ -746,8 +791,8 @@ def get_devices():
                    p.code_pocsag, p.immatriculation, p.rfgi, p.version_logiciel, p.classe_service, p.date_achat, p.observation,
                    p.cis, m.type, p.statut_activite
             FROM parc p
-            LEFT JOIN materiel m ON TRIM(p.modele) = TRIM(m.modele)
-            WHERE TRIM(p.cis) = TRIM(?) AND TRIM(m.type) = TRIM(?)
+            LEFT JOIN materiel m ON p.modele = m.modele
+            WHERE p.cis = ? AND m.type = ?
         """
         rows = query_db(DB_SDIS, query, (cis, device_type))
         log_logic(f"Device filter results | CIS='{cis}' | Type='{device_type}' | Count={len(rows)}")
@@ -930,19 +975,19 @@ def get_modeles_by_type():
 @app.route('/api/devices', methods=['POST'])
 def add_device():
     data = request.json or {}
-    cis = data.get('cis')
-    modele = data.get('modele')
-    num_serie = data.get('num_serie')
-    affectation = data.get('affectation', '')
-    version_logiciel = data.get('version_logiciel', '')
-    observation = data.get('observation', '')
-    date_maj_cle = data.get('date_maj_cle') or None
+    cis = (data.get('cis') or '').strip()
+    modele = (data.get('modele') or '').strip()
+    num_serie = (data.get('num_serie') or '').strip()
+    affectation = (data.get('affectation') or '').strip()
+    version_logiciel = (data.get('version_logiciel') or '').strip()
+    observation = (data.get('observation') or '').strip()
+    date_maj_cle = (data.get('date_maj_cle') or '').strip() or None
     
     # Extract additional fields
-    code_pocsag = data.get('code_pocsag', '')
-    immatriculation = data.get('immatriculation', '')
-    rfgi = data.get('rfgi', '')
-    classe_service = data.get('classe_service', '')
+    code_pocsag = (data.get('code_pocsag') or '').strip()
+    immatriculation = (data.get('immatriculation') or '').strip()
+    rfgi = (data.get('rfgi') or '').strip()
+    classe_service = (data.get('classe_service') or '').strip()
     
     # Calculate next key date automatically if date_maj_cle is set
     date_cle_a_faire = calculate_next_key_date(date_maj_cle) if date_maj_cle else None
@@ -953,7 +998,7 @@ def add_device():
     log_logic(f"Adding device: Model='{modele}', S/N='{num_serie}', CIS='{cis}'")
     try:
         # Check if model exists
-        model_row = query_db(DB_SDIS, "SELECT modele FROM materiel WHERE TRIM(modele) = TRIM(?)", (modele,), one=True)
+        model_row = query_db(DB_SDIS, "SELECT modele FROM materiel WHERE modele = ?", (modele,), one=True)
         if not model_row:
             log_logic(f"Failed to add device: Model '{modele}' not in repository")
             return jsonify({'error': f"Le modèle '{modele}' n'existe pas dans le référentiel matériel"}), 400
@@ -1733,14 +1778,14 @@ def get_search_metadata():
 def advanced_search():
     data = request.json or {}
     
-    # Extract criteria
-    cis = data.get('cis')
-    modele = data.get('modele')
-    device_type = data.get('type')
-    num_serie = data.get('num_serie')
-    affectation = data.get('affectation')
-    pocsag = data.get('pocsag') or data.get('code_pocsag')
-    rfgi = data.get('rfgi')
+    # Extract criteria and strip spaces
+    cis = (data.get('cis') or '').strip()
+    modele = (data.get('modele') or '').strip()
+    device_type = (data.get('type') or '').strip()
+    num_serie = (data.get('num_serie') or '').strip()
+    affectation = (data.get('affectation') or '').strip()
+    pocsag = (data.get('pocsag') or data.get('code_pocsag') or '').strip()
+    rfgi = (data.get('rfgi') or '').strip()
 
     query = """
         SELECT p.rowid as id, p.num_serie, p.modele, m.marque, p.affectation,
@@ -1748,19 +1793,19 @@ def advanced_search():
                p.code_pocsag, p.immatriculation, p.rfgi, p.version_logiciel, p.classe_service, p.date_achat, p.observation,
                p.cis, m.type, p.statut_activite
         FROM parc p
-        LEFT JOIN materiel m ON TRIM(p.modele) = TRIM(m.modele)
+        LEFT JOIN materiel m ON p.modele = m.modele
         WHERE 1=1
     """
     params = []
     
     if cis:
-        query += " AND TRIM(p.cis) = TRIM(?)"
+        query += " AND p.cis = ?"
         params.append(cis)
     if modele:
-        query += " AND TRIM(p.modele) = TRIM(?)"
+        query += " AND p.modele = ?"
         params.append(modele)
     if device_type:
-        query += " AND TRIM(m.type) = TRIM(?)"
+        query += " AND m.type = ?"
         params.append(device_type)
     if num_serie:
         query += " AND p.num_serie LIKE ?"
