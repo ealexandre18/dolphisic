@@ -2584,6 +2584,10 @@
                   return (!pocsag || String(row.code_pocsag || '').toLowerCase().includes(pocsag)) &&
                     (!rfgi || String(row.rfgi || '').toLowerCase().includes(rfgi));
                 });
+                window.DolphiSICLastDevices = filtered;
+                setTimeout(function() {
+                  window.dispatchEvent(new CustomEvent('dolphisic-devices-loaded'));
+                }, 180);
                 return new Response(JSON.stringify(filtered), {
                   status: response.status,
                   statusText: response.statusText,
@@ -4885,6 +4889,13 @@
 
         function refreshStandardView() {
           selectedDeviceIds.clear();
+          if (window.parent && window.parent.location.hash === '#search') {
+            const searchSubmitBtn = document.querySelector('main form button[type="submit"]');
+            if (searchSubmitBtn) {
+              searchSubmitBtn.click();
+              return;
+            }
+          }
           const navButtons = Array.from(document.querySelectorAll('nav button'));
           const searchButton = navButtons.find(button => button.textContent.includes('Recherche Avancée'));
           const standardButton = navButtons.find(button => button.textContent.includes('Vue Standard'));
@@ -5025,6 +5036,7 @@
           return svgClass.includes('lucide-key');
         }
 
+        window.openEditDeviceModal = openEditDeviceModal;
         async function openEditDeviceModal(device) {
           if (!device || !device.id) return;
           let details = device;
@@ -5188,6 +5200,45 @@
           } catch (error) {
             alert(error.message);
           }
+        }
+
+        function installAdvancedSearchInterceptors() {
+          const devices = Array.isArray(window.DolphiSICLastDevices) ? window.DolphiSICLastDevices : [];
+          if (!devices.length) return;
+          const devicesBySerial = new Map(devices.map(d => [normalizedText(d.num_serie), d]));
+          
+          document.querySelectorAll('main table').forEach(table => {
+            const headers = Array.from(table.querySelectorAll('thead th'));
+            const serialColIdx = headers.findIndex(th => {
+              const txt = normalizedText(th.textContent);
+              return txt.includes('SERIE') || txt.includes('SÉRIE');
+            });
+            if (serialColIdx === -1) return;
+            
+            table.querySelectorAll('tbody tr').forEach(row => {
+              const cells = Array.from(row.querySelectorAll('td'));
+              const serialCell = cells[serialColIdx];
+              if (!serialCell) return;
+              
+              const serialText = normalizedText(serialCell.textContent);
+              const device = devicesBySerial.get(serialText);
+              if (!device) return;
+              
+              const lastCell = row.lastElementChild;
+              if (!lastCell) return;
+              
+              const keyBtn = Array.from(lastCell.querySelectorAll('button')).find(isCryptageButton);
+              if (keyBtn && !keyBtn.dataset.dolphiCryptageIntercepted) {
+                keyBtn.dataset.dolphiCryptageIntercepted = '1';
+                keyBtn.title = 'Mettre à jour le cryptage';
+                keyBtn.addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  openCryptageUpdateModal({ device });
+                }, true);
+              }
+            });
+          });
         }
 
         function installBulkSelection() {
@@ -6061,6 +6112,7 @@
           solidifyTransparentMenus();
           enhanceCartoPanels().catch(error => console.warn('Cartographie enhancements failed', error));
           enhanceStockCisSelect().catch(error => console.warn('Stock CIS selector enhancement failed', error));
+          installAdvancedSearchInterceptors();
 
           if (!app.dataset.dolphiDefaultDashboard) {
             app.dataset.dolphiDefaultDashboard = '1';
