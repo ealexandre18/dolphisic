@@ -6113,6 +6113,7 @@
           enhanceCartoPanels().catch(error => console.warn('Cartographie enhancements failed', error));
           enhanceStockCisSelect().catch(error => console.warn('Stock CIS selector enhancement failed', error));
           installAdvancedSearchInterceptors();
+          enhanceDocumentPreviewer();
 
           if (!app.dataset.dolphiDefaultDashboard) {
             app.dataset.dolphiDefaultDashboard = '1';
@@ -6137,6 +6138,161 @@
             }
             child = child.nextSibling;
           }
+        }
+
+        function getDocumentIdFromUrl(url) {
+          const match = String(url || '').match(/\/api\/carto\/documents\/(\d+)\/(?:download|view)/);
+          return match ? match[1] : null;
+        }
+
+        function openDocumentPreview(docId, fileName) {
+          if (!docId) return;
+          const existing = document.getElementById('dolphi-document-preview');
+          if (existing) existing.remove();
+
+          let scale = 1;
+          const lowerName = String(fileName || '').toLowerCase();
+          const viewUrl = `/api/carto/documents/${docId}/view`;
+          const downloadUrl = `/api/carto/documents/${docId}/download`;
+          const isImage = /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(lowerName);
+          const isPdf = /\.pdf$/i.test(lowerName);
+
+          const overlay = document.createElement('div');
+          overlay.id = 'dolphi-document-preview';
+          overlay.style.cssText = [
+            'position:fixed',
+            'inset:0',
+            'z-index:99999',
+            'display:flex',
+            'align-items:center',
+            'justify-content:center',
+            'padding:24px',
+            'background:rgba(3,7,18,.72)',
+            'backdrop-filter:blur(6px)'
+          ].join(';');
+
+          const modal = document.createElement('div');
+          modal.style.cssText = [
+            'width:min(1180px,94vw)',
+            'height:min(820px,90vh)',
+            'display:flex',
+            'flex-direction:column',
+            'overflow:hidden',
+            'border:1px solid var(--border-color)',
+            'border-radius:18px',
+            'background:var(--card-bg-solid,#1b263b)',
+            'box-shadow:0 24px 70px rgba(0,0,0,.55)'
+          ].join(';');
+
+          const header = document.createElement('div');
+          header.style.cssText = [
+            'display:flex',
+            'align-items:center',
+            'justify-content:space-between',
+            'gap:16px',
+            'padding:16px 18px',
+            'border-bottom:1px solid var(--border-color)'
+          ].join(';');
+
+          const title = document.createElement('div');
+          title.style.cssText = 'min-width:0;color:var(--text-main);font-weight:800;font-size:1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+          title.textContent = fileName || 'Document';
+
+          const actions = document.createElement('div');
+          actions.style.cssText = 'display:flex;align-items:center;gap:8px;flex-shrink:0';
+
+          const makeButton = (label, onClick) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.textContent = label;
+            button.style.cssText = 'height:38px;padding:0 14px;border-radius:10px;border:1px solid var(--border-color);background:#111827;color:#fff;font-weight:700;cursor:pointer';
+            button.addEventListener('click', onClick);
+            return button;
+          };
+
+          const body = document.createElement('div');
+          body.style.cssText = 'flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:auto;background:#0f172a';
+
+          let preview;
+          const applyScale = () => {
+            if (preview && isImage) {
+              preview.style.transform = `scale(${scale})`;
+              preview.style.transformOrigin = 'center center';
+            }
+          };
+
+          if (isImage) {
+            preview = document.createElement('img');
+            preview.src = viewUrl;
+            preview.alt = fileName || 'Document';
+            preview.style.cssText = 'max-width:92%;max-height:92%;object-fit:contain;transition:transform .16s ease';
+            body.appendChild(preview);
+            actions.appendChild(makeButton('-', () => { scale = Math.max(0.25, scale - 0.25); applyScale(); }));
+            actions.appendChild(makeButton('+', () => { scale = Math.min(4, scale + 0.25); applyScale(); }));
+          } else if (isPdf) {
+            preview = document.createElement('iframe');
+            preview.src = viewUrl;
+            preview.title = fileName || 'Document';
+            preview.style.cssText = 'width:100%;height:100%;border:0;background:#fff';
+            body.appendChild(preview);
+          } else {
+            preview = document.createElement('iframe');
+            preview.src = viewUrl;
+            preview.title = fileName || 'Document';
+            preview.style.cssText = 'width:100%;height:100%;border:0;background:#fff';
+            body.appendChild(preview);
+          }
+
+          const download = document.createElement('a');
+          download.href = downloadUrl;
+          download.textContent = 'T' + String.fromCharCode(0x00e9) + 'l' + String.fromCharCode(0x00e9) + 'charger';
+          download.style.cssText = 'height:38px;display:inline-flex;align-items:center;padding:0 14px;border-radius:10px;border:1px solid var(--border-color);background:#111827;color:#fff;font-weight:700;text-decoration:none';
+          actions.appendChild(download);
+          actions.appendChild(makeButton('Fermer', () => overlay.remove()));
+
+          header.appendChild(title);
+          header.appendChild(actions);
+          modal.appendChild(header);
+          modal.appendChild(body);
+          overlay.appendChild(modal);
+          overlay.addEventListener('click', event => {
+            if (event.target === overlay) overlay.remove();
+          });
+          document.addEventListener('keydown', function closeOnEscape(event) {
+            if (event.key === 'Escape') {
+              overlay.remove();
+              document.removeEventListener('keydown', closeOnEscape);
+            }
+          });
+          document.body.appendChild(overlay);
+        }
+
+        function enhanceDocumentPreviewer() {
+          document.querySelectorAll('a[href*="/api/carto/documents/"][href$="/download"]').forEach(link => {
+            const docId = getDocumentIdFromUrl(link.getAttribute('href'));
+            if (!docId) return;
+            const actions = link.parentElement;
+            if (!actions || actions.querySelector('[data-dolphi-document-preview="' + docId + '"]')) return;
+
+            const row = actions.parentElement || link.closest('div');
+            const nameNode = row ? row.querySelector('strong') : null;
+            const fileName = nameNode ? nameNode.textContent.trim() : 'Document';
+
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.dataset.dolphiDocumentPreview = docId;
+            button.title = 'Voir le document';
+            button.setAttribute('aria-label', 'Voir le document');
+            button.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+            button.style.cssText = link.getAttribute('style') || '';
+            button.style.color = '#3b82f6';
+            button.addEventListener('click', event => {
+              event.preventDefault();
+              event.stopPropagation();
+              openDocumentPreview(docId, fileName);
+            });
+            actions.insertBefore(button, link);
+          });
         }
 
                 window.changeLegacyView = function(viewId) {

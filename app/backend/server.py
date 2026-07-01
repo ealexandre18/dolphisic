@@ -2419,6 +2419,18 @@ def download_document(doc_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/carto/documents/<int:doc_id>/view', methods=['GET'])
+def view_document(doc_id):
+    try:
+        row = query_db(DB_CARTO, "SELECT chemin_relatif, nom_fichier FROM documents WHERE id = ?", (doc_id,), one=True)
+        if not row:
+            return jsonify({'error': 'Document introuvable'}), 404
+
+        chemin = row['chemin_relatif']
+        return send_from_directory(app.config['UPLOAD_FOLDER'], chemin, as_attachment=False, download_name=row['nom_fichier'])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # --- STOCK & LOAN MANAGEMENT ---
 @app.route('/api/stock', methods=['GET'])
 def get_stock():
